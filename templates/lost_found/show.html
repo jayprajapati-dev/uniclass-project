@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}{{ item.title }} - Lost & Found{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">{{ item.title }}</h4>
+                    <span class="badge bg-{{ 'success' if item.type == 'found' else 'danger' }}">
+                        {{ item.type|title }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    {% if item.image_path %}
+                    <div class="text-center mb-4">
+                        <img src="{{ url_for('static', filename=item.image_path) }}" 
+                             alt="{{ item.title }}" 
+                             class="img-fluid rounded"
+                             style="max-height: 400px;">
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-4">
+                        <h5>Description</h5>
+                        <p>{{ item.description }}</p>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Details</h5>
+                            <ul class="list-unstyled">
+                                <li><strong>Category:</strong> {{ item.category|title }}</li>
+                                <li><strong>Date:</strong> {{ item.date.strftime('%B %d, %Y') }}</li>
+                                <li><strong>Location:</strong> {{ item.location }}</li>
+                                <li><strong>Status:</strong> 
+                                    <span class="badge bg-{{ 'success' if item.status == 'closed' else 'warning' }}">
+                                        {{ item.status|title }}
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Contact Information</h5>
+                            <ul class="list-unstyled">
+                                <li><strong>Reported by:</strong> {{ item.reporter.username }}</li>
+                                <li><strong>Reported on:</strong> {{ item.created_at.strftime('%B %d, %Y') }}</li>
+                                {% if item.claimer %}
+                                <li><strong>Claimed by:</strong> {{ item.claimer.username }}</li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+
+                    {% if item.verification_status == 'pending' %}
+                    <div class="alert alert-info">
+                        <h5>Verification Pending</h5>
+                        <p>{{ item.verification_details }}</p>
+                    </div>
+                    {% endif %}
+
+                    {% if item.status == 'open' and current_user.id != item.reporter_id %}
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#claimModal">
+                            {% if item.type == 'found' %}Claim Item{% else %}I Found This{% endif %}
+                        </button>
+                    </div>
+                    {% endif %}
+
+                    {% if item.status == 'claimed' and current_user.id == item.reporter_id %}
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#verifyModal">
+                            Verify Claim
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Similar Items</h5>
+                </div>
+                <div class="card-body">
+                    {% for similar in similar_items %}
+                    <div class="mb-3">
+                        <a href="{{ url_for('lost_found.show_item', item_id=similar.id) }}" class="text-decoration-none">
+                            <div class="d-flex align-items-center">
+                                {% if similar.image_path %}
+                                <img src="{{ url_for('static', filename=similar.image_path) }}" 
+                                     alt="{{ similar.title }}" 
+                                     class="rounded me-3"
+                                     style="width: 64px; height: 64px; object-fit: cover;">
+                                {% endif %}
+                                <div>
+                                    <h6 class="mb-0">{{ similar.title }}</h6>
+                                    <small class="text-muted">{{ similar.category|title }} • {{ similar.date.strftime('%b %d') }}</small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Claim Modal -->
+<div class="modal fade" id="claimModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{% if item.type == 'found' %}Claim Item{% else %}Report Found{% endif %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('lost_found.claim_item', item_id=item.id) }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="verification_details" class="form-label">Verification Details</label>
+                        <textarea class="form-control" id="verification_details" name="verification_details" rows="4" required
+                                  placeholder="Provide details to verify your claim (e.g., unique marks, serial numbers, etc.)"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Submit Claim</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Verify Modal -->
+<div class="modal fade" id="verifyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Verify Claim</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('lost_found.verify_item', item_id=item.id) }}">
+                <div class="modal-body">
+                    <p>Please verify that the claimed item matches your lost item. Once verified, the item will be marked as closed.</p>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="verify" name="verify" required>
+                        <label class="form-check-label" for="verify">
+                            I confirm that this is my item
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Verify and Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

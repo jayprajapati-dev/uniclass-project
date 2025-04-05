@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}My Submissions - UniClass{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header Navigation -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light rounded shadow-sm">
+                <div class="container-fluid">
+                    <span class="navbar-brand">UniClass</span>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav me-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('main.index') }}">
+                                    <i class="fas fa-home me-1"></i> Home
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('student.index') }}">
+                                    <i class="fas fa-tachometer-alt me-1"></i> Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('student.assignments') }}">
+                                    <i class="fas fa-tasks me-1"></i> Assignments
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link active" href="{{ url_for('student.submissions') }}">
+                                    <i class="fas fa-file-upload me-1"></i> Submissions
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('timetable.index') }}">
+                                    <i class="fas fa-calendar-alt me-1"></i> Timetable
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('classroom.index') }}">
+                                    <i class="fas fa-chalkboard me-1"></i> Classrooms
+                                </a>
+                            </li>
+                        </ul>
+                        <ul class="navbar-nav">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-user-circle me-1"></i> {{ current_user.name }}
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}">
+                                        <i class="fas fa-user me-1"></i> Profile
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">
+                                        <i class="fas fa-sign-out-alt me-1"></i> Logout
+                                    </a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Page Content -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-upload me-2"></i>My Submissions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if submissions %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Assignment</th>
+                                        <th>Subject</th>
+                                        <th>Submitted On</th>
+                                        <th>Status</th>
+                                        <th>Grade</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for submission in submissions %}
+                                    <tr>
+                                        <td>{{ submission.assignment.title }}</td>
+                                        <td>{{ submission.assignment.subject }}</td>
+                                        <td>{{ submission.submitted_at.strftime('%d/%m/%Y %I:%M %p') }}</td>
+                                        <td>
+                                            {% if submission.is_graded %}
+                                                <span class="badge bg-success">Graded</span>
+                                            {% else %}
+                                                <span class="badge bg-warning">Pending</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if submission.grade %}
+                                                {{ submission.grade }}/100
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('student.view_submission', id=submission.id) }}" 
+                                               class="btn btn-sm btn-primary">
+                                                <i class="fas fa-eye me-1"></i> View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-file-upload fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No submissions yet</h5>
+                            <p class="text-muted mb-3">You haven't submitted any assignments yet.</p>
+                            <a href="{{ url_for('student.assignments') }}" class="btn btn-primary">
+                                <i class="fas fa-tasks me-1"></i> View Assignments
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.navbar {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+}
+.nav-link {
+    padding: 0.8rem 1.2rem;
+    border-radius: 0.25rem;
+    transition: all 0.3s ease;
+}
+.nav-link:hover {
+    background-color: rgba(0,0,0,0.05);
+}
+.nav-link.active {
+    background-color: var(--bs-primary);
+    color: white !important;
+}
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+}
+.card-header {
+    border-bottom: none;
+    background-color: transparent;
+}
+.table th {
+    border-top: none;
+    background-color: rgba(0,0,0,0.02);
+}
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+.dropdown-menu {
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+}
+.dropdown-item {
+    padding: 0.5rem 1rem;
+}
+.dropdown-item:hover {
+    background-color: rgba(0,0,0,0.02);
+}
+</style>
+{% endblock %} 

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance Management - Teacher{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0">Today's Classes</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for class in classes %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ class.subject }}</h5>
+                    <p class="card-text">
+                        <i class="fas fa-clock me-2"></i>{{ class.start_time.strftime('%I:%M %p') }} - {{ class.end_time.strftime('%I:%M %p') }}<br>
+                        <i class="fas fa-users me-2"></i>{{ class.batch }}<br>
+                        <i class="fas fa-door-open me-2"></i>{{ class.classroom.name }}
+                    </p>
+                    <div class="d-grid">
+                        <a href="{{ url_for('attendance.mark_attendance', subject_id=class.id) }}" class="btn btn-primary">
+                            <i class="fas fa-check-circle me-2"></i>Mark Attendance
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>No classes scheduled for today.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %} 

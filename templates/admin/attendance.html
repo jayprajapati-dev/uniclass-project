@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance Management - Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0">Attendance Management</h1>
+        </div>
+    </div>
+
+    <!-- Attendance Thresholds -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Attendance Thresholds</h5>
+        </div>
+        <div class="card-body">
+            <form action="{{ url_for('attendance.set_attendance_threshold') }}" method="POST">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="department" class="form-label">Department</label>
+                            <select class="form-select" id="department" name="department" required>
+                                <option value="Civil Engineering">Civil Engineering (CE)</option>
+                                <option value="Mechanical Engineering">Mechanical Engineering (ME)</option>
+                                <option value="Electrical Engineering">Electrical Engineering (EE)</option>
+                                <option value="Electronics & Communication Engineering">Electronics & Communication Engineering (EC)</option>
+                                <option value="Computer Engineering">Computer Engineering (CE)</option>
+                                <option value="Information Technology">Information Technology (IT)</option>
+                                <option value="Information and Communication Technology">Information and Communication Technology (ICT)</option>
+                                <option value="Automobile Engineering">Automobile Engineering</option>
+                                <option value="Petroleum Engineering">Petroleum Engineering</option>
+                                <option value="Architecture Engineering">Architecture Engineering</option>
+                                <option value="Environmental Engineering">Environmental Engineering</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="semester" class="form-label">Semester</label>
+                            <select class="form-select" id="semester" name="semester" required>
+                                <option value="1">Semester 1</option>
+                                <option value="2">Semester 2</option>
+                                <option value="3">Semester 3</option>
+                                <option value="4">Semester 4</option>
+                                <option value="5">Semester 5</option>
+                                <option value="6">Semester 6</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="threshold" class="form-label">Threshold Percentage</label>
+                            <input type="number" class="form-control" id="threshold" name="threshold" min="0" max="100" step="0.1" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">Set Threshold</button>
+                </div>
+            </form>
+
+            <div class="mt-4">
+                <h6>Current Thresholds</h6>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Department</th>
+                                <th>Semester</th>
+                                <th>Threshold</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for threshold in thresholds %}
+                            <tr>
+                                <td>{{ threshold.department }}</td>
+                                <td>Semester {{ threshold.semester }}</td>
+                                <td>{{ threshold.threshold_percentage }}%</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Records -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Attendance Records</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Student</th>
+                            <th>Subject</th>
+                            <th>Status</th>
+                            <th>Marked By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in records %}
+                        <tr>
+                            <td>{{ record.date.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ record.student.name }}</td>
+                            <td>{{ record.subject.subject }}</td>
+                            <td>
+                                <span class="badge {% if record.status == 'present' %}bg-success{% elif record.status == 'absent' %}bg-danger{% else %}bg-warning{% endif %}">
+                                    {{ record.status.title() }}
+                                </span>
+                            </td>
+                            <td>{{ record.teacher.name }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

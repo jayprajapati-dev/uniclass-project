@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h1 class="card-title">{{ classroom.name }}</h1>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="card-subtitle mb-3">Room Information</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <strong>Type:</strong> {{ classroom.room_type.replace('_', ' ').title() }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Building:</strong> {{ classroom.building }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Floor:</strong> {{ classroom.floor }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Department:</strong> {{ classroom.department }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Location:</strong> {{ classroom.location }}
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h5 class="card-subtitle mb-3">Additional Information</h5>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> This room is available for use during regular hours.
+                    </div>
+                    {% if current_user.is_admin %}
+                    <div class="mt-3">
+                        <a href="{{ url_for('classrooms.edit', id=classroom.id) }}" class="btn btn-primary">
+                            <i class="fas fa-edit"></i> Edit Classroom
+                        </a>
+                        <form method="POST" action="{{ url_for('classrooms.delete', id=classroom.id) }}" class="d-inline">
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to deactivate this classroom?')">
+                                <i class="fas fa-trash"></i> Delete Classroom
+                            </button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <a href="{{ url_for('classrooms.index') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Classrooms
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}Lost & Found Portal{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>Lost & Found Portal</h2>
+            <p class="text-muted">Find your lost items or help others find theirs</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('lost_found.report_item') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Report Item
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form id="filterForm" class="row g-3">
+                <div class="col-md-3">
+                    <label for="search" class="form-label">Search</label>
+                    <input type="text" class="form-control" id="search" name="search" 
+                           placeholder="Search items...">
+                </div>
+                <div class="col-md-2">
+                    <label for="category" class="form-label">Category</label>
+                    <select class="form-select" id="category" name="category">
+                        <option value="">All Categories</option>
+                        <option value="electronics">Electronics</option>
+                        <option value="documents">Documents</option>
+                        <option value="clothing">Clothing</option>
+                        <option value="accessories">Accessories</option>
+                        <option value="books">Books</option>
+                        <option value="others">Others</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="type" class="form-label">Type</label>
+                    <select class="form-select" id="type" name="type">
+                        <option value="all">All Types</option>
+                        <option value="lost">Lost</option>
+                        <option value="found">Found</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="status" class="form-label">Status</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="all">All Status</option>
+                        <option value="open">Open</option>
+                        <option value="claimed">Claimed</option>
+                        <option value="closed">Closed</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Items Grid -->
+    <div class="row" id="itemsGrid">
+        {% for item in items %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                {% if item.image_path %}
+                <img src="{{ url_for('static', filename='uploads/' + item.image_path) }}" 
+                     class="card-img-top" alt="{{ item.title }}">
+                {% else %}
+                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+                     style="height: 200px;">
+                    <i class="fas fa-question-circle fa-3x text-muted"></i>
+                </div>
+                {% endif %}
+                
+                <div class="card-body">
+                    <h5 class="card-title">{{ item.title }}</h5>
+                    <p class="card-text">{{ item.description[:100] }}...</p>
+                    <p class="card-text">
+                        <small class="text-muted">
+                            {{ item.location }} - {{ item.date.strftime('%Y-%m-%d') }}
+                        </small>
+                    </p>
+                    <span class="badge bg-{{ 'danger' if item.type == 'lost' else 'success' }}">
+                        {{ item.type|title }}
+                    </span>
+                    <span class="badge bg-{{ 'success' if item.status == 'open' else 'warning' if item.status == 'claimed' else 'secondary' }}">
+                        {{ item.status|title }}
+                    </span>
+                </div>
+                <div class="card-footer bg-white">
+                    <a href="{{ url_for('lost_found.show_item', id=item.id) }}" 
+                       class="btn btn-primary btn-sm">View Details</a>
+                    {% if item.status == 'open' and current_user.is_authenticated and item.reporter_id != current_user.id %}
+                    <button class="btn btn-success btn-sm claim-btn" 
+                            data-item-id="{{ item.id }}">Claim</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                No items found matching your criteria.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let filterTimeout;
+const filterForm = document.getElementById('filterForm');
+const itemsGrid = document.getElementById('itemsGrid');
+
+function updateResults() {
+    const formData = new FormData(filterForm);
+    const params = new URLSearchParams(formData);
+    
+    fetch(`{{ url_for('lost_found.index') }}?${params.toString()}`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        itemsGrid.innerHTML = '';
+        if (data.items.length === 0) {
+            itemsGrid.innerHTML = `
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        No items found matching your criteria.
+                    </div>
+                </div>
+            `;
+            return;
+        }
+        
+        data.items.forEach(item => {
+            const itemCard = `
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        ${item.image_path ? 
+                            `<img src="/static/uploads/${item.image_path}" class="card-img-top" alt="${item.title}">` :
+                            `<div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <i class="fas fa-question-circle fa-3x text-muted"></i>
+                            </div>`
+                        }
+                        <div class="card-body">
+                            <h5 class="card-title">${item.title}</h5>
+                            <p class="card-text">${item.description.substring(0, 100)}...</p>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    ${item.location} - ${new Date(item.date).toLocaleDateString()}
+                                </small>
+                            </p>
+                            <span class="badge bg-${item.type === 'lost' ? 'danger' : 'success'}">
+                                ${item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+                            </span>
+                            <span class="badge bg-${item.status === 'open' ? 'success' : item.status === 'claimed' ? 'warning' : 'secondary'}">
+                                ${item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                            </span>
+                        </div>
+                        <div class="card-footer bg-white">
+                            <a href="/lost_found/item/${item.id}" class="btn btn-primary btn-sm">View Details</a>
+                            ${item.status === 'open' && current_user && item.reporter_id !== current_user.id ?
+                                `<button class="btn btn-success btn-sm claim-btn" data-item-id="${item.id}">Claim</button>` :
+                                ''
+                            }
+                        </div>
+                    </div>
+                </div>
+            `;
+            itemsGrid.innerHTML += itemCard;
+        });
+    });
+}
+
+// Add event listeners for real-time filtering
+filterForm.addEventListener('input', () => {
+    clearTimeout(filterTimeout);
+    filterTimeout = setTimeout(updateResults, 300);
+});
+
+// Add event listeners for filter changes
+['category', 'type', 'status'].forEach(id => {
+    document.getElementById(id).addEventListener('change', updateResults);
+});
+
+// Handle claim button clicks
+document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('claim-btn')) {
+        const itemId = e.target.dataset.itemId;
+        fetch(`/lost_found/item/${itemId}/claim`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateResults();
+            } else {
+                alert(data.message || 'Error claiming item');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

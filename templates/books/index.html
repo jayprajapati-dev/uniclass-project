@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block title %}Books & Study Materials{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Filters</h5>
+                </div>
+                <div class="card-body">
+                    <form id="searchForm" method="GET" action="{{ url_for('books.index') }}">
+                        <div class="mb-3">
+                            <label for="search" class="form-label">Search</label>
+                            <input type="text" class="form-control" id="search" name="search" 
+                                   placeholder="Search by title, subject, or description">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="branch" class="form-label">Branch</label>
+                            <select class="form-select" id="branch" name="branch">
+                                <option value="">All Branches</option>
+                                <option value="CE" {% if request.args.get('branch') == 'CE' %}selected{% endif %}>Computer Engineering</option>
+                                <option value="ME" {% if request.args.get('branch') == 'ME' %}selected{% endif %}>Mechanical Engineering</option>
+                                <option value="EE" {% if request.args.get('branch') == 'EE' %}selected{% endif %}>Electrical Engineering</option>
+                                <option value="EC" {% if request.args.get('branch') == 'EC' %}selected{% endif %}>Electronics Engineering</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="semester" class="form-label">Semester</label>
+                            <select class="form-select" id="semester" name="semester">
+                                <option value="">All Semesters</option>
+                                {% for i in range(1, 9) %}
+                                    <option value="{{ i }}" {% if request.args.get('semester') == i|string %}selected{% endif %}>{{ i }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="material_type" class="form-label">Material Type</label>
+                            <select class="form-select" id="material_type" name="material_type">
+                                <option value="">All Types</option>
+                                <option value="Book" {% if request.args.get('material_type') == 'Book' %}selected{% endif %}>Book</option>
+                                <option value="Notes" {% if request.args.get('material_type') == 'Notes' %}selected{% endif %}>Notes</option>
+                                <option value="Question Papers" {% if request.args.get('material_type') == 'Question Papers' %}selected{% endif %}>Question Papers</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="min_price" class="form-label">Min Price</label>
+                            <input type="number" class="form-control" id="min_price" name="min_price" 
+                                   value="{{ request.args.get('min_price', '') }}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="max_price" class="form-label">Max Price</label>
+                            <input type="number" class="form-control" id="max_price" name="max_price" 
+                                   value="{{ request.args.get('max_price', '') }}">
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Books & Study Materials</h2>
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('books.new') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> New Listing
+                    </a>
+                {% endif %}
+            </div>
+            
+            <div id="booksGrid" class="row">
+                {% for book in books.items %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            {% if book.image_path %}
+                                <img src="{{ url_for('static', filename='uploads/' + book.image_path) }}" 
+                                     class="card-img-top" alt="{{ book.title }}">
+                            {% else %}
+                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+                                     style="height: 200px;">
+                                    <i class="fas fa-book fa-3x text-muted"></i>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="card-body">
+                                <h5 class="card-title">{{ book.title }}</h5>
+                                <p class="card-text">
+                                    <small class="text-muted">
+                                        {{ book.material_type }} - {{ book.branch }} Sem {{ book.semester }}
+                                    </small>
+                                </p>
+                                <p class="card-text">
+                                    <strong>₹{{ book.price }}</strong>
+                                    <span class="badge bg-secondary ms-2">{{ book.condition }}</span>
+                                </p>
+                            </div>
+                            
+                            <div class="card-footer bg-white">
+                                <a href="{{ url_for('books.show', id=book.id) }}" class="btn btn-outline-primary btn-sm">
+                                    View Details
+                                </a>
+                                {% if current_user.is_authenticated %}
+                                    <a href="{{ url_for('messages.conversation', user_id=book.seller_id) }}" 
+                                       class="btn btn-outline-success btn-sm">
+                                        Contact Seller
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            No listings found matching your criteria.
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            {% if books.pages > 1 %}
+                <nav aria-label="Page navigation" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% for page in books.iter_pages() %}
+                            {% if page %}
+                                <li class="page-item {% if page == books.page %}active{% endif %}">
+                                    <a class="page-link" href="{{ url_for('books.index', page=page, **request.args) }}">{{ page }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let searchTimeout;
+const searchForm = document.getElementById('searchForm');
+const booksGrid = document.getElementById('booksGrid');
+
+function updateResults() {
+    const formData = new FormData(searchForm);
+    const params = new URLSearchParams(formData);
+    
+    fetch(`{{ url_for('books.index') }}?${params.toString()}`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        booksGrid.innerHTML = '';
+        if (data.books.length === 0) {
+            booksGrid.innerHTML = `
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        No listings found matching your criteria.
+                    </div>
+                </div>
+            `;
+            return;
+        }
+        
+        data.books.forEach(book => {
+            const bookCard = `
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        ${book.image_path ? 
+                            `<img src="/static/uploads/${book.image_path}" class="card-img-top" alt="${book.title}">` :
+                            `<div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <i class="fas fa-book fa-3x text-muted"></i>
+                            </div>`
+                        }
+                        <div class="card-body">
+                            <h5 class="card-title">${book.title}</h5>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    ${book.material_type} - ${book.branch} Sem ${book.semester}
+                                </small>
+                            </p>
+                            <p class="card-text">
+                                <strong>₹${book.price}</strong>
+                                <span class="badge bg-secondary ms-2">${book.condition}</span>
+                            </p>
+                        </div>
+                        <div class="card-footer bg-white">
+                            <a href="/books/${book.id}" class="btn btn-outline-primary btn-sm">
+                                View Details
+                            </a>
+                            ${current_user ? `
+                                <a href="/messages/conversation/${book.seller_id}" class="btn btn-outline-success btn-sm">
+                                    Contact Seller
+                                </a>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+            booksGrid.innerHTML += bookCard;
+        });
+    });
+}
+
+// Add event listeners for real-time search
+searchForm.addEventListener('input', () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(updateResults, 300);
+});
+
+// Add event listeners for filter changes
+['branch', 'semester', 'material_type', 'min_price', 'max_price'].forEach(id => {
+    document.getElementById(id).addEventListener('change', updateResults);
+});
+</script>
+{% endblock %} 

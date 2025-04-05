@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - UniClass{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Profile Sidebar -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="profile-image mb-3">
+                        <i class="fas fa-user-circle fa-5x"></i>
+                    </div>
+                    <h4>{{ current_user.name or current_user.username }}</h4>
+                    <p class="text-muted">{{ current_user.email }}</p>
+                    <p class="badge bg-primary">{{ current_user.role.title() }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Content -->
+        <div class="col-md-8">
+            <!-- Profile Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Profile Information</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" class="needs-validation" novalidate>
+                        {{ form.hidden_tag() }}
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Full Name</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="name" 
+                                   name="name" 
+                                   value="{{ current_user.name or '' }}"
+                                   required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" 
+                                   class="form-control" 
+                                   value="{{ current_user.email }}" 
+                                   disabled>
+                        </div>
+                        {% if current_user.is_student %}
+                        <div class="mb-3">
+                            <label for="department" class="form-label">Department</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="department" 
+                                   name="department" 
+                                   value="{{ current_user.department or '' }}"
+                                   required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="year" class="form-label">Year</label>
+                            <select class="form-select" id="year" name="year" required>
+                                <option value="" disabled {% if not current_user.year %}selected{% endif %}>Select your year</option>
+                                <option value="1" {% if current_user.year == '1' %}selected{% endif %}>1st Year</option>
+                                <option value="2" {% if current_user.year == '2' %}selected{% endif %}>2nd Year</option>
+                                <option value="3" {% if current_user.year == '3' %}selected{% endif %}>3rd Year</option>
+                                <option value="4" {% if current_user.year == '4' %}selected{% endif %}>4th Year</option>
+                            </select>
+                        </div>
+                        {% endif %}
+                        <button type="submit" class="btn btn-primary" name="update_profile">Update Profile</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Change Password -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Change Password</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" class="needs-validation" novalidate>
+                        {{ form.hidden_tag() }}
+                        <div class="mb-3">
+                            <label for="current_password" class="form-label">Current Password</label>
+                            <input type="password" 
+                                   class="form-control" 
+                                   id="current_password" 
+                                   name="current_password" 
+                                   required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="new_password" class="form-label">New Password</label>
+                            <input type="password" 
+                                   class="form-control" 
+                                   id="new_password" 
+                                   name="new_password" 
+                                   required>
+                        </div>
+                        <button type="submit" class="btn btn-primary" name="change_password">Change Password</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

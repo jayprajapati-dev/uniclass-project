@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Notifications</h5>
+                    <button class="btn btn-sm btn-primary" onclick="markAllAsRead()">Mark All as Read</button>
+                </div>
+                <div class="card-body">
+                    <div id="notifications-list">
+                        <!-- Notifications will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Function to load notifications
+function loadNotifications() {
+    fetch('/notifications/')
+        .then(response => response.json())
+        .then(notifications => {
+            const container = document.getElementById('notifications-list');
+            container.innerHTML = notifications.map(notification => `
+                <div class="notification-item ${notification.is_read ? '' : 'unread'}" 
+                     onclick="markAsRead(${notification.id})">
+                    <div class="d-flex justify-content-between">
+                        <h6 class="mb-1">${notification.title}</h6>
+                        <small class="text-muted">${new Date(notification.created_at).toLocaleString()}</small>
+                    </div>
+                    <p class="mb-1">${notification.message}</p>
+                    ${notification.link ? `<a href="${notification.link}" class="btn btn-sm btn-link">View</a>` : ''}
+                </div>
+            `).join('');
+        });
+}
+
+// Function to mark a notification as read
+function markAsRead(id) {
+    fetch(`/notifications/${id}/read`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(() => {
+        loadNotifications();
+    });
+}
+
+// Function to mark all notifications as read
+function markAllAsRead() {
+    fetch('/notifications/read-all', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(() => {
+        loadNotifications();
+    });
+}
+
+// Load notifications when page loads
+document.addEventListener('DOMContentLoaded', loadNotifications);
+
+// Refresh notifications every 30 seconds
+setInterval(loadNotifications, 30000);
+</script>
+
+<style>
+.notification-item {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+}
+
+.notification-item.unread {
+    background-color: #f8f9fa;
+}
+
+.notification-item:hover {
+    background-color: #f0f0f0;
+}
+</style>
+{% endblock %} 

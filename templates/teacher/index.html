@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}Teacher Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Welcome, {{ current_user.username }}</h1>
+    
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total Students</h5>
+                    <p class="card-text display-4">{{ total_students }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Active Assignments</h5>
+                    <p class="card-text display-4">{{ active_assignments }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Reports</h5>
+                    <p class="card-text display-4">{{ pending_reports }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Today's Classes</h5>
+                    <p class="card-text display-4">{{ today_classes }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Actions -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <a href="{{ url_for('assignments.create') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-plus-circle"></i> Create New Assignment
+                        </a>
+                        <a href="{{ url_for('teacher.mark_attendance') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-clipboard-check"></i> Mark Attendance
+                        </a>
+                        <a href="{{ url_for('teacher.create_classroom') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-door-open"></i> Add Classroom
+                        </a>
+                        <a href="{{ url_for('timetable.manage') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-calendar-plus"></i> Design Timetable
+                        </a>
+                        <a href="{{ url_for('materials.create') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-book"></i> Upload Study Material
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Today's Schedule</h5>
+                </div>
+                <div class="card-body">
+                    {% if today_schedule %}
+                        <div class="list-group">
+                            {% for entry in today_schedule %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">{{ entry.subject }}</h6>
+                                        <small class="text-muted">{{ entry.start_time.strftime('%I:%M %p') }} - {{ entry.end_time.strftime('%I:%M %p') }}</small>
+                                    </div>
+                                    <span class="badge bg-primary">{{ entry.classroom.name }}</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No classes scheduled for today.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reports and Issues -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Recent Reports</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_reports %}
+                        <div class="list-group">
+                            {% for report in recent_reports %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">{{ report.title }}</h6>
+                                        <small class="text-muted">Reported by: {{ report.reporter.username }}</small>
+                                        <p class="mb-1">{{ report.description }}</p>
+                                    </div>
+                                    <div>
+                                        <span class="badge bg-{{ 'success' if report.status == 'resolved' else 'warning' }}">
+                                            {{ report.status.title() }}
+                                        </span>
+                                        <a href="{{ url_for('reports.view', id=report.id) }}" class="btn btn-sm btn-outline-primary ms-2">
+                                            View
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No recent reports.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Lost & Found Items</h5>
+                </div>
+                <div class="card-body">
+                    {% if lost_found_items %}
+                        <div class="list-group">
+                            {% for item in lost_found_items %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">{{ item.title }}</h6>
+                                        <small class="text-muted">{{ 'Lost' if item.type == 'lost' else 'Found' }} by: {{ item.reported_by.username }}</small>
+                                        <p class="mb-1">{{ item.description }}</p>
+                                    </div>
+                                    <div>
+                                        <span class="badge bg-{{ 'success' if item.status == 'resolved' else 'warning' }}">
+                                            {{ item.status.title() }}
+                                        </span>
+                                        <a href="{{ url_for('lost_found.view', id=item.id) }}" class="btn btn-sm btn-outline-primary ms-2">
+                                            View
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No recent lost & found items.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Recent Submissions</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_submissions %}
+                        <div class="list-group">
+                            {% for submission in recent_submissions %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">{{ submission.assignment.title }}</h6>
+                                        <small class="text-muted">Submitted by: {{ submission.student.username }}</small>
+                                    </div>
+                                    <span class="badge bg-{{ 'success' if submission.status == 'approved' else 'warning' if submission.status == 'pending' else 'danger' }}">
+                                        {{ submission.status.title() }}
+                                    </span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No recent submissions.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Study Materials</h5>
+                </div>
+                <div class="card-body">
+                    {% if study_materials %}
+                        <div class="list-group">
+                            {% for material in study_materials %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">{{ material.title }}</h6>
+                                        <small class="text-muted">Subject: {{ material.subject }}</small>
+                                        <p class="mb-1">{{ material.description }}</p>
+                                    </div>
+                                    <div>
+                                        <span class="badge bg-{{ 'success' if material.status == 'available' else 'warning' }}">
+                                            {{ material.status.title() }}
+                                        </span>
+                                        <a href="{{ url_for('materials.view', id=material.id) }}" class="btn btn-sm btn-outline-primary ms-2">
+                                            View
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No study materials available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

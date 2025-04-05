@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Item{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Item Verification</h5>
+                </div>
+                <div class="card-body">
+                    {% if not verification %}
+                        <!-- Step 0: Select potential match -->
+                        <h6 class="mb-3">Potential Matches</h6>
+                        {% if potential_matches %}
+                            {% for match in potential_matches %}
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h6>{{ match.title }}</h6>
+                                        <p class="mb-2"><strong>Category:</strong> {{ match.category }}</p>
+                                        <p class="mb-2"><strong>Location:</strong> {{ match.location }}</p>
+                                        <p class="mb-2"><strong>Date:</strong> 
+                                            {% if item_type == 'lost' %}
+                                                {{ match.date_found.strftime('%Y-%m-%d') }}
+                                            {% else %}
+                                                {{ match.date_lost.strftime('%Y-%m-%d') }}
+                                            {% endif %}
+                                        </p>
+                                        <form method="POST">
+                                            <input type="hidden" name="action" value="start_verification">
+                                            <input type="hidden" name="match_id" value="{{ match.id }}">
+                                            <button type="submit" class="btn btn-primary">Start Verification</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted">No potential matches found yet.</p>
+                        {% endif %}
+                    {% else %}
+                        <!-- Verification Steps -->
+                        {% if verification.verification_status == 'pending' or verification.verification_status == 'in_progress' %}
+                            {% if verification.verification_step == 1 %}
+                                <!-- Step 1: Initial Confirmation -->
+                                <h6 class="mb-3">Step 1: Initial Confirmation</h6>
+                                <p>Is this your item? Please confirm.</p>
+                                <form method="POST" class="d-flex gap-2">
+                                    <input type="hidden" name="action" value="confirm_step">
+                                    <input type="hidden" name="step" value="1">
+                                    <button type="submit" name="confirmed" value="yes" class="btn btn-success">Yes, this is my item</button>
+                                    <button type="submit" name="confirmed" value="no" class="btn btn-danger">No, this is not my item</button>
+                                </form>
+
+                            {% elif verification.verification_step == 2 %}
+                                <!-- Step 2: Detailed Description -->
+                                <h6 class="mb-3">Step 2: Item Description</h6>
+                                <form method="POST">
+                                    <input type="hidden" name="action" value="confirm_step">
+                                    <input type="hidden" name="step" value="2">
+                                    <div class="mb-3">
+                                        <label for="description" class="form-label">Please provide a detailed description of the item (color, size, unique features)</label>
+                                        <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Submit Description</button>
+                                </form>
+
+                            {% elif verification.verification_step == 3 %}
+                                <!-- Step 3: Location and Date -->
+                                <h6 class="mb-3">Step 3: Location and Date</h6>
+                                <form method="POST">
+                                    <input type="hidden" name="action" value="confirm_step">
+                                    <input type="hidden" name="step" value="3">
+                                    <div class="mb-3">
+                                        <label for="location_date" class="form-label">Please confirm where and when you lost/found this item</label>
+                                        <textarea class="form-control" id="location_date" name="location_date" rows="3" required></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Submit Details</button>
+                                </form>
+
+                            {% elif verification.verification_step == 4 %}
+                                <!-- Step 4: Photo Upload -->
+                                <h6 class="mb-3">Step 4: Photo Verification</h6>
+                                <form method="POST" enctype="multipart/form-data">
+                                    <input type="hidden" name="action" value="confirm_step">
+                                    <input type="hidden" name="step" value="4">
+                                    <div class="mb-3">
+                                        <label for="photo" class="form-label">Please upload a photo of the item for verification</label>
+                                        <input type="file" class="form-control" id="photo" name="photo" accept="image/*" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Upload Photo</button>
+                                </form>
+
+                            {% elif verification.verification_step == 5 %}
+                                <!-- Step 5: Final Confirmation -->
+                                <h6 class="mb-3">Step 5: Final Confirmation</h6>
+                                <p>Based on the description and photo, is this indeed your lost item?</p>
+                                <form method="POST" class="d-flex gap-2">
+                                    <input type="hidden" name="action" value="confirm_step">
+                                    <input type="hidden" name="step" value="5">
+                                    <button type="submit" name="final_confirmation" value="yes" class="btn btn-success">Yes, this is mine</button>
+                                    <button type="submit" name="final_confirmation" value="no" class="btn btn-danger">No, this is not mine</button>
+                                </form>
+                            {% endif %}
+
+                        {% elif verification.verification_status == 'verified' %}
+                            <div class="alert alert-success">
+                                <h6 class="alert-heading">Verification Successful!</h6>
+                                <p class="mb-0">The item has been successfully verified. You can now arrange for its return.</p>
+                            </div>
+                            <!-- Show contact information -->
+                            <div class="mt-3">
+                                <h6>Contact Information</h6>
+                                {% if item_type == 'lost' %}
+                                    <p><strong>Finder:</strong> {{ verification.found_item.contact_info }}</p>
+                                {% else %}
+                                    <p><strong>Owner:</strong> {{ verification.lost_item.contact_info }}</p>
+                                {% endif %}
+                            </div>
+
+                        {% elif verification.verification_status == 'rejected' %}
+                            <div class="alert alert-danger">
+                                <h6 class="alert-heading">Verification Failed</h6>
+                                <p class="mb-0">This item does not match. Please continue searching or report your item again.</p>
+                            </div>
+                        {% endif %}
+
+                        {% if verification.verification_status != 'rejected' %}
+                            <div class="mt-4">
+                                <a href="{{ url_for('verification.chat', verification_id=verification.id) }}" 
+                                   class="btn btn-outline-primary">
+                                    <i class="fas fa-comments me-2"></i>Go to Chat
+                                </a>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

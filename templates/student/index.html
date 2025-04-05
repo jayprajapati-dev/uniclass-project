@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="card sidebar-card">
+                <div class="card-body">
+                    <h5 class="card-title">Quick Actions</h5>
+                    <div class="list-group">
+                        <button class="list-group-item list-group-item-action active" data-bs-toggle="list" data-target="assignments">
+                            <i class="fas fa-tasks me-2"></i>Assignments
+                        </button>
+                        <button class="list-group-item list-group-item-action" data-bs-toggle="list" data-target="timetable">
+                            <i class="fas fa-calendar-alt me-2"></i>Timetable
+                        </button>
+                        <button class="list-group-item list-group-item-action" data-bs-toggle="list" data-target="materials">
+                            <i class="fas fa-book me-2"></i>Study Materials
+                        </button>
+                        <button class="list-group-item list-group-item-action" data-bs-toggle="list" data-target="classrooms">
+                            <i class="fas fa-chalkboard me-2"></i>Classrooms
+                        </button>
+                        <button class="list-group-item list-group-item-action" data-bs-toggle="list" data-target="profile">
+                            <i class="fas fa-user me-2"></i>Profile
+                        </button>
+                        <button class="list-group-item list-group-item-action" data-bs-toggle="list" data-target="lost_found">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <div class="tab-content">
+                <!-- Assignments Section -->
+                <div class="tab-pane fade show active" id="assignments">
+                    <div class="card content-card">
+                        <div class="card-body">
+                            <h5 class="card-title">My Assignments</h5>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Title</th>
+                                            <th>Due Date</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for assignment in assignments %}
+                                        <tr>
+                                            <td>{{ assignment.title }}</td>
+                                            <td>{{ assignment.due_date.strftime('%Y-%m-%d') }}</td>
+                                            <td>
+                                                <span class="badge bg-{{ 'success' if assignment.status == 'completed' else 'warning' }}">
+                                                    {{ assignment.status }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="{{ url_for('assignments.view', id=assignment.id) }}" class="btn btn-sm btn-primary">View</a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timetable Section -->
+                <div class="tab-pane fade" id="timetable">
+                    <div class="card content-card">
+                        <div class="card-body">
+                            <h5 class="card-title">My Timetable</h5>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Time</th>
+                                            <th>Monday</th>
+                                            <th>Tuesday</th>
+                                            <th>Wednesday</th>
+                                            <th>Thursday</th>
+                                            <th>Friday</th>
+                                            <th>Saturday</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for time_slot in timetable %}
+                                        <tr>
+                                            <td>{{ time_slot.time }}</td>
+                                            {% for day in time_slot.schedule %}
+                                            <td>{{ day }}</td>
+                                            {% endfor %}
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Study Materials Section -->
+                <div class="tab-pane fade" id="materials">
+                    <div class="card content-card">
+                        <div class="card-body">
+                            <h5 class="card-title">Study Materials</h5>
+                            <div class="row">
+                                {% for material in materials %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="card h-100 material-card">
+                                        <div class="card-body">
+                                            <h6 class="card-title">{{ material.title }}</h6>
+                                            <p class="card-text">{{ material.description }}</p>
+                                            <a href="{{ url_for('materials.show', id=material.id) }}" class="btn btn-sm btn-primary">View</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Classrooms Section -->
+                <div class="tab-pane fade" id="classrooms">
+                    <div class="card content-card">
+                        <div class="card-body">
+                            <h5 class="card-title">My Classrooms</h5>
+                            <div class="row">
+                                {% for classroom in classrooms %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="card h-100 classroom-card">
+                                        <div class="card-body">
+                                            <h6 class="card-title">{{ classroom.name }}</h6>
+                                            <p class="card-text">{{ classroom.description }}</p>
+                                            <a href="{{ url_for('classroom.view', id=classroom.id) }}" class="btn btn-sm btn-primary">View</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Section -->
+                <div class="tab-pane fade" id="profile">
+                    <div class="card content-card">
+                        <div class="card-body">
+                            <h5 class="card-title">My Profile</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Name:</strong> {{ current_user.name }}</p>
+                                    <p><strong>Email:</strong> {{ current_user.email }}</p>
+                                    <p><strong>Department:</strong> {{ current_user.department }}</p>
+                                    <p><strong>Year:</strong> {{ current_user.year }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <a href="{{ url_for('auth.profile') }}" class="btn btn-primary">Edit Profile</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get all list group items
+    const listItems = document.querySelectorAll('.list-group-item');
+    
+    // Add click event listener to each item
+    listItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Remove active class from all items
+            listItems.forEach(i => i.classList.remove('active'));
+            
+            // Add active class to clicked item
+            this.classList.add('active');
+            
+            // Get target section
+            const target = this.getAttribute('data-target');
+            
+            // Hide all tab panes
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('show', 'active');
+            });
+            
+            // Show target tab pane
+            document.getElementById(target).classList.add('show', 'active');
+        });
+    });
+});
+</script>
+{% endblock %}
+
+<style>
+    .sidebar-card, .content-card {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+    }
+
+    .list-group-item {
+        background-color: var(--card-bg);
+        border-color: var(--border-color);
+        color: var(--text-color);
+    }
+
+    .list-group-item:hover {
+        background-color: var(--border-color);
+        color: var(--text-color);
+    }
+
+    .list-group-item.active {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        color: white;
+    }
+
+    .card-title {
+        color: var(--text-color);
+    }
+
+    .table {
+        color: var(--text-color);
+    }
+
+    .table thead th {
+        background-color: var(--border-color);
+        border-color: var(--border-color);
+        color: var(--text-color);
+    }
+
+    .table tbody td {
+        border-color: var(--border-color);
+    }
+
+    .material-card, .classroom-card {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+    }
+
+    [data-theme="dark"] .material-card:hover, 
+    [data-theme="dark"] .classroom-card:hover {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .btn-primary:hover {
+        background-color: #0b5ed7;
+        border-color: #0a58ca;
+    }
+</style>
+{% endblock %} 

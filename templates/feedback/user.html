@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}{{ user.username }}'s Feedback{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Feedback for {{ user.username }}</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Average Ratings -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <h6>Communication</h6>
+                                <div class="display-rating">
+                                    {% for i in range(5) %}
+                                        <i class="fas fa-star {% if i < avg_communication %}text-warning{% else %}text-muted{% endif %}"></i>
+                                    {% endfor %}
+                                </div>
+                                <small class="text-muted">{{ "%.1f"|format(avg_communication) }} / 5</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <h6>Timeliness</h6>
+                                <div class="display-rating">
+                                    {% for i in range(5) %}
+                                        <i class="fas fa-star {% if i < avg_timeliness %}text-warning{% else %}text-muted{% endif %}"></i>
+                                    {% endfor %}
+                                </div>
+                                <small class="text-muted">{{ "%.1f"|format(avg_timeliness) }} / 5</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <h6>Overall</h6>
+                                <div class="display-rating">
+                                    {% for i in range(5) %}
+                                        <i class="fas fa-star {% if i < avg_overall %}text-warning{% else %}text-muted{% endif %}"></i>
+                                    {% endfor %}
+                                </div>
+                                <small class="text-muted">{{ "%.1f"|format(avg_overall) }} / 5</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Individual Reviews -->
+                    <div class="reviews">
+                        {% if feedback %}
+                            {% for f in feedback %}
+                                <div class="review mb-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <strong>{{ f.reviewer.username }}</strong>
+                                            <span class="text-muted ms-2">
+                                                {{ f.created_at.strftime('%Y-%m-%d') }}
+                                            </span>
+                                        </div>
+                                        <div class="rating">
+                                            {% for i in range(5) %}
+                                                <i class="fas fa-star {% if i < f.overall_rating %}text-warning{% else %}text-muted{% endif %}"></i>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <p class="mb-0">{{ f.review }}</p>
+                                </div>
+                                {% if not loop.last %}
+                                    <hr>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted text-center">No feedback yet</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.display-rating {
+    font-size: 1.5rem;
+    margin: 0.5rem 0;
+}
+
+.rating {
+    color: #ffc107;
+}
+</style>
+{% endblock %}

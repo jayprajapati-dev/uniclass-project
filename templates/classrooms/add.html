@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Add New Classroom</h1>
+    
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('classrooms.add') }}">
+                {{ form.hidden_tag() }}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.name.label(class="form-label") }}
+                        {{ form.name(class="form-control", placeholder="Room name") }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.room_type.label(class="form-label") }}
+                        {{ form.room_type(class="form-select") }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.building.label(class="form-label") }}
+                        {{ form.building(class="form-control", placeholder="Building name") }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.floor.label(class="form-label") }}
+                        {{ form.floor(class="form-control", placeholder="Floor number") }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.department.label(class="form-label") }}
+                        {{ form.department(class="form-select") }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.location.label(class="form-label") }}
+                        {{ form.location(class="form-control", placeholder="Room location") }}
+                    </div>
+                </div>
+                <div class="text-end">
+                    <a href="{{ url_for('classrooms.admin') }}" class="btn btn-secondary">Cancel</a>
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

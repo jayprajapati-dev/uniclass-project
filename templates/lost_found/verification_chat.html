@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+
+{% block head %}
+<style>
+    .progress-bar-width {
+        width: var(--progress-width);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Item Verification Chat</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Item Details Section -->
+                    <div class="item-details mb-4">
+                        <h5>Item Details</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Title:</strong> {{ item.title }}</p>
+                                <p><strong>Category:</strong> {{ item.category }}</p>
+                                <p><strong>Location:</strong> {{ item.location }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Date:</strong> {{ item.date_lost.strftime('%Y-%m-%d %H:%M') if item_type == 'lost' else item.date_found.strftime('%Y-%m-%d %H:%M') }}</p>
+                                <p><strong>Status:</strong> <span class="badge bg-{{ 'success' if item.status == 'active' else 'secondary' }}">{{ item.status }}</span></p>
+                            </div>
+                        </div>
+                        {% if item.image_path %}
+                        <div class="mt-3">
+                            <img src="{{ url_for('static', filename=item.image_path) }}" class="img-fluid rounded" alt="{{ item.title }}">
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Chat Messages -->
+                    <div class="chat-messages mb-4" style="height: 400px; overflow-y: auto;">
+                        {% for message in messages %}
+                        <div class="message mb-3 {% if message.is_system %}text-center{% else %}{% if message.sender_id == current_user.id %}text-end{% endif %}{% endif %}">
+                            {% if message.is_system %}
+                            <div class="alert alert-info">
+                                {{ message.message }}
+                            </div>
+                            {% else %}
+                            <div class="message-content {% if message.sender_id == current_user.id %}bg-primary text-white{% else %}bg-light{% endif %} p-2 rounded">
+                                {{ message.message }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Verification Steps -->
+                    {% if not verification_completed %}
+                    <div class="verification-steps mb-4">
+                        <h5>Verification Steps</h5>
+                        <div class="progress mb-3">
+                            <div class="progress-bar progress-bar-width" role="progressbar" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100" style="--progress-width: {{ progress }}%"></div>
+                        </div>
+                        <div class="step-content">
+                            {% if current_step == 1 %}
+                            <div class="text-center">
+                                <p>Is this your item? Please confirm.</p>
+                                <button class="btn btn-success me-2" onclick="sendVerificationResponse(true)">Yes, this is my item</button>
+                                <button class="btn btn-danger" onclick="sendVerificationResponse(false)">No, this is not my item</button>
+                            </div>
+                            {% elif current_step == 2 %}
+                            <div>
+                                <p>Please provide a detailed description of the item (color, size, unique feature).</p>
+                                <textarea class="form-control mb-2" id="itemDescription" rows="3"></textarea>
+                                <button class="btn btn-primary" onclick="sendDescription()">Submit Description</button>
+                            </div>
+                            {% elif current_step == 3 %}
+                            <div>
+                                <p>Can you confirm where and when you lost/found this item?</p>
+                                <textarea class="form-control mb-2" id="locationDetails" rows="3"></textarea>
+                                <button class="btn btn-primary" onclick="sendLocationDetails()">Submit Location Details</button>
+                            </div>
+                            {% elif current_step == 4 %}
+                            <div>
+                                <p>Please upload a photo of the item for verification purposes.</p>
+                                <input type="file" class="form-control mb-2" id="itemPhoto" accept="image/*">
+                                <button class="btn btn-primary" onclick="uploadPhoto()">Upload Photo</button>
+                            </div>
+                            {% elif current_step == 5 %}
+                            <div class="text-center">
+                                <p>Based on the description and photo, is this indeed your lost item?</p>
+                                <button class="btn btn-success me-2" onclick="sendFinalVerification(true)">Yes, this is mine</button>
+                                <button class="btn btn-danger" onclick="sendFinalVerification(false)">No, this is not mine</button>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Chat Input -->
+                    {% if verification_completed %}
+                    <div class="chat-input">
+                        <form id="chatForm" class="d-flex">
+                            <input type="text" class="form-control me-2" id="messageInput" placeholder="Type your message...">
+                            <button type="submit" class="btn btn-primary">Send</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Scroll to bottom of chat messages
+    function scrollToBottom() {
+        const chatMessages = document.querySelector('.chat-messages');
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Send verification response
+    function sendVerificationResponse(isMatch) {
+        fetch('/lost-found/verification/{{ item.id }}/step1', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ is_match: isMatch })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        });
+    }
+
+    // Send item description
+    function sendDescription() {
+        const description = document.getElementById('itemDescription').value;
+        fetch('/lost-found/verification/{{ item.id }}/step2', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ description: description })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        });
+    }
+
+    // Send location details
+    function sendLocationDetails() {
+        const location = document.getElementById('locationDetails').value;
+        fetch('/lost-found/verification/{{ item.id }}/step3', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ location: location })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        });
+    }
+
+    // Upload photo
+    function uploadPhoto() {
+        const photoInput = document.getElementById('itemPhoto');
+        const formData = new FormData();
+        formData.append('photo', photoInput.files[0]);
+
+        fetch('/lost-found/verification/{{ item.id }}/step4', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        });
+    }
+
+    // Send final verification
+    function sendFinalVerification(isMatch) {
+        fetch('/lost-found/verification/{{ item.id }}/step5', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ is_match: isMatch })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        });
+    }
+
+    // Handle chat form submission
+    document.getElementById('chatForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const messageInput = document.getElementById('messageInput');
+        const message = messageInput.value.trim();
+
+        if (message) {
+            fetch('/lost-found/chat/{{ item.id }}/send', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    messageInput.value = '';
+                    location.reload();
+                }
+            });
+        }
+    });
+
+    // Scroll to bottom on page load
+    document.addEventListener('DOMContentLoaded', scrollToBottom);
+</script>
+{% endblock %} 

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Lost Item{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('lost_found.index') }}">Lost & Found</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('lost_found.show_lost', id=item.id) }}">Lost Item Details</a></li>
+                    <li class="breadcrumb-item active">Edit Lost Item</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">Edit Lost Item</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Title</label>
+                            <input type="text" class="form-control" id="title" name="title" value="{{ item.title }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" required>{{ item.description }}</textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="location" class="form-label">Location</label>
+                            <input type="text" class="form-control" id="location" name="location" value="{{ item.location }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Category</label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="Electronics" {% if item.category == 'Electronics' %}selected{% endif %}>Electronics</option>
+                                <option value="Books" {% if item.category == 'Books' %}selected{% endif %}>Books</option>
+                                <option value="Documents" {% if item.category == 'Documents' %}selected{% endif %}>Documents</option>
+                                <option value="Accessories" {% if item.category == 'Accessories' %}selected{% endif %}>Accessories</option>
+                                <option value="Others" {% if item.category == 'Others' %}selected{% endif %}>Others</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="contact_info" class="form-label">Contact Information</label>
+                            <textarea class="form-control" id="contact_info" name="contact_info" rows="2" required>{{ item.contact_info }}</textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="image" class="form-label">Image</label>
+                            {% if item.image_path %}
+                            <div class="mb-2">
+                                <img src="{{ url_for('static', filename=item.image_path) }}" alt="Current image" style="max-height: 200px;">
+                                <p class="text-muted small">Upload a new image to replace the current one</p>
+                            </div>
+                            {% endif %}
+                            <input type="file" class="form-control" id="image" name="image" accept=".jpg,.jpeg,.png">
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('lost_found.show_lost', id=item.id) }}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

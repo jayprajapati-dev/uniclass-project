@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Update Report</h1>
+        <a href="{{ url_for('reports.view_report', id=report.id) }}" class="btn btn-secondary">Back to Report</a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title</label>
+                    <input type="text" class="form-control" id="title" name="title" value="{{ report.title }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="category" class="form-label">Category</label>
+                    <select class="form-select" id="category" name="category" required>
+                        <option value="academic" {% if report.category == 'academic' %}selected{% endif %}>Academic</option>
+                        <option value="administrative" {% if report.category == 'administrative' %}selected{% endif %}>Administrative</option>
+                        <option value="technical" {% if report.category == 'technical' %}selected{% endif %}>Technical</option>
+                        <option value="other" {% if report.category == 'other' %}selected{% endif %}>Other</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="department" class="form-label">Department</label>
+                    <select class="form-select" id="department" name="department" required>
+                        <option value="computer_science" {% if report.department == 'computer_science' %}selected{% endif %}>Computer Science</option>
+                        <option value="information_technology" {% if report.department == 'information_technology' %}selected{% endif %}>Information Technology</option>
+                        <option value="electronics" {% if report.department == 'electronics' %}selected{% endif %}>Electronics</option>
+                        <option value="mechanical" {% if report.department == 'mechanical' %}selected{% endif %}>Mechanical</option>
+                        <option value="civil" {% if report.department == 'civil' %}selected{% endif %}>Civil</option>
+                        <option value="electrical" {% if report.department == 'electrical' %}selected{% endif %}>Electrical</option>
+                        <option value="administration" {% if report.department == 'administration' %}selected{% endif %}>Administration</option>
+                        <option value="library" {% if report.department == 'library' %}selected{% endif %}>Library</option>
+                        <option value="hostel" {% if report.department == 'hostel' %}selected{% endif %}>Hostel</option>
+                        <option value="other" {% if report.department == 'other' %}selected{% endif %}>Other</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="priority" class="form-label">Priority</label>
+                    <select class="form-select" id="priority" name="priority" required>
+                        <option value="low" {% if report.priority == 'low' %}selected{% endif %}>Low</option>
+                        <option value="medium" {% if report.priority == 'medium' %}selected{% endif %}>Medium</option>
+                        <option value="high" {% if report.priority == 'high' %}selected{% endif %}>High</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="status" class="form-label">Status</label>
+                    <select class="form-select" id="status" name="status" required>
+                        <option value="pending" {% if report.status == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="in_progress" {% if report.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                        <option value="resolved" {% if report.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                        <option value="closed" {% if report.status == 'closed' %}selected{% endif %}>Closed</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="5" required>{{ report.description }}</textarea>
+                </div>
+
+                {% if current_user.is_admin and report.status == 'resolved' %}
+                <div class="mb-3">
+                    <label for="resolution_notes" class="form-label">Resolution Notes</label>
+                    <textarea class="form-control" id="resolution_notes" name="resolution_notes" rows="3">{{ report.resolution_notes }}</textarea>
+                </div>
+                {% endif %}
+
+                <button type="submit" class="btn btn-primary">Update Report</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

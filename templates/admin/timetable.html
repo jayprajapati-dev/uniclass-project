@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Timetable{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Manage Timetable</h1>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addEntryModal">
+            <i class="fas fa-plus me-2"></i>Add Entry
+        </button>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Filter Section -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form action="{{ url_for('admin.timetable') }}" method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <label for="classroom" class="form-label">Classroom</label>
+                    <select class="form-select" id="classroom" name="classroom">
+                        <option value="">All Classrooms</option>
+                        {% for classroom in classrooms %}
+                        <option value="{{ classroom.id }}" {% if request.args.get('classroom')|int == classroom.id %}selected{% endif %}>
+                            {{ classroom.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="teacher" class="form-label">Teacher</label>
+                    <select class="form-select" id="teacher" name="teacher">
+                        <option value="">All Teachers</option>
+                        {% for teacher in teachers %}
+                        <option value="{{ teacher.id }}" {% if request.args.get('teacher')|int == teacher.id %}selected{% endif %}>
+                            {{ teacher.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="day" class="form-label">Day</label>
+                    <select class="form-select" id="day" name="day">
+                        <option value="">All Days</option>
+                        <option value="Monday" {% if request.args.get('day') == 'Monday' %}selected{% endif %}>Monday</option>
+                        <option value="Tuesday" {% if request.args.get('day') == 'Tuesday' %}selected{% endif %}>Tuesday</option>
+                        <option value="Wednesday" {% if request.args.get('day') == 'Wednesday' %}selected{% endif %}>Wednesday</option>
+                        <option value="Thursday" {% if request.args.get('day') == 'Thursday' %}selected{% endif %}>Thursday</option>
+                        <option value="Friday" {% if request.args.get('day') == 'Friday' %}selected{% endif %}>Friday</option>
+                        <option value="Saturday" {% if request.args.get('day') == 'Saturday' %}selected{% endif %}>Saturday</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Timetable Entries -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Day</th>
+                            <th>Time</th>
+                            <th>Classroom</th>
+                            <th>Teacher</th>
+                            <th>Subject</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in entries %}
+                        <tr>
+                            <td>{{ entry.day }}</td>
+                            <td>{{ entry.start_time.strftime('%I:%M %p') }} - {{ entry.end_time.strftime('%I:%M %p') }}</td>
+                            <td>{{ entry.classroom.name }}</td>
+                            <td>{{ entry.teacher.name }}</td>
+                            <td>{{ entry.subject }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editEntryModal{{ entry.id }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteEntryModal{{ entry.id }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+
+                        <!-- Edit Entry Modal -->
+                        <div class="modal fade" id="editEntryModal{{ entry.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Edit Timetable Entry</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <form action="{{ url_for('admin.edit_timetable_entry', entry_id=entry.id) }}" method="POST">
+                                        <div class="modal-body">
+                                            <div class="mb-3">
+                                                <label for="day" class="form-label">Day</label>
+                                                <select class="form-select" id="day" name="day" required>
+                                                    <option value="Monday" {% if entry.day == 'Monday' %}selected{% endif %}>Monday</option>
+                                                    <option value="Tuesday" {% if entry.day == 'Tuesday' %}selected{% endif %}>Tuesday</option>
+                                                    <option value="Wednesday" {% if entry.day == 'Wednesday' %}selected{% endif %}>Wednesday</option>
+                                                    <option value="Thursday" {% if entry.day == 'Thursday' %}selected{% endif %}>Thursday</option>
+                                                    <option value="Friday" {% if entry.day == 'Friday' %}selected{% endif %}>Friday</option>
+                                                    <option value="Saturday" {% if entry.day == 'Saturday' %}selected{% endif %}>Saturday</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="start_time" class="form-label">Start Time</label>
+                                                <input type="time" class="form-control" id="start_time" name="start_time" value="{{ entry.start_time.strftime('%H:%M') }}" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="end_time" class="form-label">End Time</label>
+                                                <input type="time" class="form-control" id="end_time" name="end_time" value="{{ entry.end_time.strftime('%H:%M') }}" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="classroom_id" class="form-label">Classroom</label>
+                                                <select class="form-select" id="classroom_id" name="classroom_id" required>
+                                                    {% for classroom in classrooms %}
+                                                    <option value="{{ classroom.id }}" {% if entry.classroom_id == classroom.id %}selected{% endif %}>
+                                                        {{ classroom.name }}
+                                                    </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="teacher_id" class="form-label">Teacher</label>
+                                                <select class="form-select" id="teacher_id" name="teacher_id" required>
+                                                    {% for teacher in teachers %}
+                                                    <option value="{{ teacher.id }}" {% if entry.teacher_id == teacher.id %}selected{% endif %}>
+                                                        {{ teacher.name }}
+                                                    </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="subject" class="form-label">Subject</label>
+                                                <input type="text" class="form-control" id="subject" name="subject" value="{{ entry.subject }}" required>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Delete Entry Modal -->
+                        <div class="modal fade" id="deleteEntryModal{{ entry.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Delete Timetable Entry</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Are you sure you want to delete this timetable entry? This action cannot be undone.</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <form action="{{ url_for('admin.delete_timetable_entry', entry_id=entry.id) }}" method="POST" class="d-inline">
+                                            <button type="submit" class="btn btn-danger">Delete</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Entry Modal -->
+    <div class="modal fade" id="addEntryModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Timetable Entry</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="{{ url_for('admin.add_timetable_entry') }}" method="POST">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="day" class="form-label">Day</label>
+                            <select class="form-select" id="day" name="day" required>
+                                <option value="Monday">Monday</option>
+                                <option value="Tuesday">Tuesday</option>
+                                <option value="Wednesday">Wednesday</option>
+                                <option value="Thursday">Thursday</option>
+                                <option value="Friday">Friday</option>
+                                <option value="Saturday">Saturday</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="start_time" class="form-label">Start Time</label>
+                            <input type="time" class="form-control" id="start_time" name="start_time" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="end_time" class="form-label">End Time</label>
+                            <input type="time" class="form-control" id="end_time" name="end_time" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="classroom_id" class="form-label">Classroom</label>
+                            <select class="form-select" id="classroom_id" name="classroom_id" required>
+                                {% for classroom in classrooms %}
+                                <option value="{{ classroom.id }}">{{ classroom.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="teacher_id" class="form-label">Teacher</label>
+                            <select class="form-select" id="teacher_id" name="teacher_id" required>
+                                {% for teacher in teachers %}
+                                <option value="{{ teacher.id }}">{{ teacher.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">Subject</label>
+                            <input type="text" class="form-control" id="subject" name="subject" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Entry</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

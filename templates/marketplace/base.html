@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Marketplace{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/marketplace.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="marketplace-container">
+    <div class="marketplace-sidebar">
+        <h3>Categories</h3>
+        <ul class="category-list">
+            <li><a href="{{ url_for('marketplace.index') }}" class="{% if not request.args.get('category') %}active{% endif %}">All Categories</a></li>
+            <li><a href="{{ url_for('marketplace.index', category='books') }}" class="{% if request.args.get('category') == 'books' %}active{% endif %}">Books</a></li>
+            <li><a href="{{ url_for('marketplace.index', category='notes') }}" class="{% if request.args.get('category') == 'notes' %}active{% endif %}">Notes</a></li>
+            <li><a href="{{ url_for('marketplace.index', category='lab_equipment') }}" class="{% if request.args.get('category') == 'lab_equipment' %}active{% endif %}">Lab Equipment</a></li>
+            <li><a href="{{ url_for('marketplace.index', category='gadgets') }}" class="{% if request.args.get('category') == 'gadgets' %}active{% endif %}">Gadgets</a></li>
+            <li><a href="{{ url_for('marketplace.index', category='stationery') }}" class="{% if request.args.get('category') == 'stationery' %}active{% endif %}">Stationery</a></li>
+            <li><a href="{{ url_for('marketplace.index', category='other') }}" class="{% if request.args.get('category') == 'other' %}active{% endif %}">Other</a></li>
+        </ul>
+        
+        <h3>Quick Links</h3>
+        <ul class="quick-links">
+            <li><a href="{{ url_for('marketplace.create_listing') }}"><i class="fas fa-plus"></i> Create Listing</a></li>
+            <li><a href="{{ url_for('marketplace.messages') }}"><i class="fas fa-envelope"></i> Messages</a></li>
+            <li><a href="{{ url_for('marketplace.index', sort_by='newest') }}"><i class="fas fa-clock"></i> New Listings</a></li>
+            <li><a href="{{ url_for('marketplace.index', sort_by='price_low') }}"><i class="fas fa-rupee-sign"></i> Lowest Price</a></li>
+        </ul>
+    </div>
+    
+    <div class="marketplace-content">
+        {% block marketplace_content %}{% endblock %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/marketplace.js') }}"></script>
+{% endblock %} 

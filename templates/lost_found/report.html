@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Report Lost/Found Item{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Report Lost/Found Item</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('lost_found.report_item') }}" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="type" class="form-label">Item Type</label>
+                            <select class="form-select" id="type" name="type" required>
+                                <option value="">Select Type</option>
+                                <option value="lost">Lost Item</option>
+                                <option value="found">Found Item</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Item Name</label>
+                            <input type="text" class="form-control" id="title" name="title" required
+                                   placeholder="e.g., Wallet, Mobile Phone, etc.">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Category</label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="">Select Category</option>
+                                <option value="electronics">Electronics</option>
+                                <option value="documents">Documents</option>
+                                <option value="clothing">Clothing</option>
+                                <option value="accessories">Accessories</option>
+                                <option value="books">Books</option>
+                                <option value="others">Others</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="4" required
+                                      placeholder="Provide detailed description including color, size, unique marks, etc."></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="date" class="form-label">Date</label>
+                            <input type="date" class="form-control" id="date" name="date" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="location" class="form-label">Location</label>
+                            <input type="text" class="form-control" id="location" name="location" required
+                                   placeholder="e.g., Building Name, Address, Landmark">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="image" class="form-label">Upload Photo (Optional)</label>
+                            <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                            <small class="text-muted">Supported formats: PNG, JPG, JPEG, GIF</small>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Submit Report</button>
+                            <a href="{{ url_for('lost_found.index') }}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set today's date as the default date
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('date').value = today;
+    
+    // Preview image before upload
+    const imageInput = document.getElementById('image');
+    imageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.createElement('img');
+                preview.src = e.target.result;
+                preview.className = 'img-fluid mt-2';
+                preview.style.maxHeight = '200px';
+                
+                const existingPreview = imageInput.nextElementSibling.nextElementSibling;
+                if (existingPreview && existingPreview.tagName === 'IMG') {
+                    existingPreview.remove();
+                }
+                
+                imageInput.parentNode.insertBefore(preview, imageInput.nextElementSibling.nextElementSibling);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+});
+</script>
+{% endblock %} 

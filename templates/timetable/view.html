@@ -1,0 +1,430 @@
+{% extends "base.html" %}
+
+{% block title %}Government Polytechnic Palanpur - Timetable{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4" id="printable-area">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <!-- Screen View Header -->
+                <div class="card-header pb-0 text-center screen-only">
+                    <h3>Government Polytechnic Palanpur</h3>
+                    <h4>{{ timetable.department }}</h4>
+                    <div class="mt-3">
+                        <button class="btn btn-sm btn-primary" onclick="window.print()">Print</button>
+                        <a href="{{ url_for('timetable.index') }}" class="btn btn-sm btn-secondary">Back</a>
+                    </div>
+                </div>
+                
+                <!-- Print View Header -->
+                <div class="print-only text-center mb-2">
+                    <div class="college-header">
+                        <h3 class="mb-2">Government Polytechnic Palanpur</h3>
+                    </div>
+                    <div class="header-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Department:</span>
+                            <span class="detail-value">All</span>
+                            <span class="detail-label">Semester:</span>
+                            <span class="detail-value">2024-25</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Classroom:</span>
+                            <span class="detail-value">{{ timetable.classroom }}</span>
+                            <span class="detail-label">Term Date:</span>
+                            <span class="detail-value">04-04-2025 to 02-08-2025</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">W.E.F.:</span>
+                            <span class="detail-value">04-04-2025</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timetable Grid -->
+                <div class="table-responsive">
+                    <table class="table table-bordered text-center align-middle timetable-grid">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                {% for day in days %}
+                                <th>{{ day }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for i in range(time_slots|length) %}
+                            <tr>
+                                <td class="time-slot">{{ time_slots[i].start_time }} - {{ time_slots[i].end_time }}</td>
+                                {% if time_slots[i].type == 'recess' or time_slots[i].type == 'break' %}
+                                    <td colspan="5" class="timetable-{{ time_slots[i].type }}">{{ time_slots[i].label }}</td>
+                                {% else %}
+                                    {% for day in days %}
+                                    <td>
+                                        {% if schedule[day][i] != '-' %}
+                                            <div class="timetable-entry">
+                                                <div class="entry-content">
+                                                    <div class="subject-row">
+                                                        <span class="subject-name">{{ schedule[day][i].subject_name|truncate(12) }}</span>
+                                                        <span class="teacher-name">({{ schedule[day][i].teacher_name|truncate(8) }})</span>
+                                                    </div>
+                                                    <div class="room-row">
+                                                        <span class="room-label">Room:</span>
+                                                        <span class="classroom">{{ schedule[day][i].classroom }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    {% endfor %}
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Summary Table -->
+                <div class="mt-3 print-only">
+                    <table class="table table-bordered summary-table">
+                        <tr>
+                            <th class="text-center">Theory (hr)</th>
+                            <td class="text-center">14</td>
+                            <th class="text-center">Practical + Tutorial (hr)</th>
+                            <td class="text-center">12</td>
+                            <th class="text-center">Total (hr)</th>
+                            <td class="text-center">26</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Signature Box -->
+                <div class="mt-3 print-only">
+                    <table class="table table-bordered signature-table">
+                        <tr class="text-center">
+                            <th>Member</th>
+                            <th>HOD</th>
+                            <th>Principal</th>
+                        </tr>
+                        <tr>
+                            <td style="height: 40px;"></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .screen-only { display: block; }
+    .print-only { display: none; }
+    
+    .college-header {
+        margin-bottom: 15px;
+    }
+    
+    .college-header h3 {
+        font-size: 18px;
+        font-weight: bold;
+        margin: 0;
+    }
+    
+    .header-details {
+        margin: 20px auto;
+        width: 100%;
+    }
+    
+    .detail-row {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .detail-label {
+        font-weight: bold;
+        white-space: nowrap;
+        font-size: 14px;
+    }
+    
+    .detail-value {
+        white-space: nowrap;
+        margin-right: 20px;
+        font-size: 14px;
+    }
+    
+    .timetable-grid {
+        width: 100%;
+        margin: 0 auto;
+        table-layout: fixed;
+    }
+    
+    .time-slot {
+        width: 100px;
+        font-weight: bold;
+        font-size: 14px;
+    }
+    
+    .timetable-grid th:not(.time-slot) {
+        width: calc((100% - 100px) / 5);
+    }
+    
+    .timetable-entry {
+        padding: 4px;
+        min-height: 45px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+    }
+    
+    .entry-content {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+    
+    .subject-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        margin-bottom: 2px;
+    }
+    
+    .subject-name {
+        font-weight: bold;
+        font-size: 13px;
+        color: #000;
+        letter-spacing: 0.2px;
+    }
+    
+    .teacher-name {
+        font-size: 11px;
+        color: #333;
+        font-weight: 500;
+    }
+    
+    .room-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+    }
+    
+    .room-label {
+        font-size: 11px;
+        color: #333;
+        font-weight: 500;
+    }
+    
+    .classroom {
+        font-size: 11px;
+        color: #000;
+        font-weight: 500;
+    }
+    
+    .timetable-recess {
+        background-color: #ffebee;
+        font-weight: bold;
+        color: #c62828;
+        font-size: 14px;
+    }
+
+    .timetable-break {
+        background-color: #fff3e0;
+        font-weight: bold;
+        color: #ef6c00;
+        font-size: 14px;
+    }
+    
+    .summary-table {
+        width: 70%;
+        margin: 15px auto;
+    }
+    
+    .signature-table {
+        width: 80%;
+        margin: 15px auto;
+    }
+    
+    @media print {
+        @page {
+            size: landscape;
+            margin: 0.2cm;
+        }
+        
+        body { 
+            font-size: 7px;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        
+        .screen-only { display: none !important; }
+        .print-only { display: block !important; }
+        
+        .card {
+            border: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .table {
+            border-collapse: collapse;
+            width: 100%;
+            table-layout: fixed;
+        }
+        
+        .table th,
+        .table td {
+            border: 1px solid #000;
+            padding: 2px;
+            font-size: 7px;
+        }
+        
+        .timetable-grid {
+            width: 99%;
+            margin: 0 auto;
+        }
+        
+        .timetable-grid td {
+            height: 30px;
+            vertical-align: middle;
+        }
+        
+        .time-slot {
+            width: 65px;
+            font-size: 6px;
+            letter-spacing: 0.1px;
+        }
+        
+        .timetable-grid th:not(.time-slot) {
+            width: calc((100% - 65px) / 5);
+        }
+        
+        .timetable-entry {
+            padding: 2px;
+            min-height: 28px;
+        }
+        
+        .entry-content {
+            gap: 1px;
+        }
+        
+        .subject-row {
+            gap: 1px;
+            margin-bottom: 1px;
+        }
+        
+        .subject-name {
+            font-size: 6px;
+            font-weight: bold;
+            color: #000;
+            letter-spacing: 0.2px;
+        }
+        
+        .teacher-name {
+            font-size: 5px;
+            color: #333;
+            font-weight: 500;
+            letter-spacing: 0.1px;
+        }
+        
+        .room-label {
+            font-size: 5px;
+            color: #333;
+            font-weight: 500;
+            letter-spacing: 0.1px;
+        }
+        
+        .classroom {
+            font-size: 5px;
+            color: #000;
+            font-weight: 500;
+            letter-spacing: 0.1px;
+        }
+        
+        .college-header h3 {
+            font-size: 9px;
+            margin-bottom: 3px;
+            letter-spacing: 0.3px;
+        }
+        
+        .header-details {
+            margin: 3px auto;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 2px;
+            margin-bottom: 2px;
+        }
+        
+        .detail-label, .detail-value {
+            font-size: 6px;
+            letter-spacing: 0.1px;
+        }
+        
+        .detail-label {
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        
+        .detail-value {
+            white-space: nowrap;
+            margin-right: 4px;
+        }
+        
+        .summary-table,
+        .signature-table {
+            margin-top: 6px;
+            width: 65%;
+        }
+        
+        .summary-table td,
+        .signature-table td {
+            height: 16px;
+        }
+        
+        .timetable-recess,
+        .timetable-break {
+            font-size: 6px;
+            letter-spacing: 0.1px;
+        }
+        
+        .navbar,
+        .footer,
+        .sidebar,
+        .btn,
+        .card-header,
+        .container-fluid {
+            display: none !important;
+        }
+        
+        #printable-area {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        
+        @page {
+            @bottom-right {
+                content: none;
+            }
+            @top-right {
+                content: none;
+            }
+        }
+    }
+</style>
+{% endblock %}

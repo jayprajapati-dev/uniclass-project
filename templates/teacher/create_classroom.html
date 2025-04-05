@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Create Classroom{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Create New Classroom</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="room_number" class="form-label">Room Number</label>
+                            <input type="text" class="form-control" id="room_number" name="room_number" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="location" class="form-label">Location</label>
+                            <input type="text" class="form-control" id="location" name="location" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="room_type" class="form-label">Room Type</label>
+                            <select class="form-select" id="room_type" name="room_type" required>
+                                <option value="lecture">Lecture Hall</option>
+                                <option value="lab">Laboratory</option>
+                                <option value="tutorial">Tutorial Room</option>
+                                <option value="conference">Conference Room</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Department</label>
+                            <input type="text" class="form-control" value="{{ current_user.department }}" readonly>
+                            <small class="text-muted">Classrooms can only be created for your department.</small>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Create Classroom</button>
+                            <a href="{{ url_for('teacher.index') }}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

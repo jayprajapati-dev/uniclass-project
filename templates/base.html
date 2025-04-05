@@ -1,116 +1,260 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Uniclass - Your Smart College Companion</title>
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>{% block title %}{% endblock %} - UniClass</title>
+    
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/favicon/site.webmanifest">
+    <link rel="mask-icon" href="/favicon/safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#ffffff">
+    
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    {% block head %}{% endblock %}
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --bg-color: #ffffff;
+            --text-color: #212529;
+            --card-bg: #ffffff;
+            --border-color: #dee2e6;
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #0d6efd;
+            --bg-color: #212529;
+            --text-color: #f8f9fa;
+            --card-bg: #343a40;
+            --border-color: #495057;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .navbar {
+            background-color: var(--card-bg) !important;
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+        }
+
+        .navbar-brand {
+            font-size: 1.2rem;
+            padding: 0.5rem 0;
+        }
+
+        .nav-link {
+            padding: 0.5rem 0.75rem !important;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        .nav-link i {
+            font-size: 0.9rem;
+            margin-right: 0.25rem;
+        }
+
+        .dropdown-menu {
+            background-color: var(--card-bg);
+            border-color: var(--border-color);
+            padding: 0.5rem 0;
+        }
+
+        .dropdown-item {
+            color: var(--text-color);
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--border-color);
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 0.5rem;
+            margin-left: 0.5rem;
+        }
+
+        .theme-toggle:hover {
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 991.98px) {
+            .navbar-collapse {
+                padding: 0.5rem 0;
+            }
+            
+            .nav-link {
+                padding: 0.5rem 1rem !important;
+            }
+            
+            .navbar-nav {
+                margin: 0.5rem 0;
+            }
+        }
+    </style>
+    {% block styles %}{% endblock %}
 </head>
 <body>
-    <!-- Preloader -->
-    <div class="preloader">
-        <div class="spinner"></div>
-    </div>
-
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg fixed-top navbar-light bg-light bg-opacity-75">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand fw-bold text-primary fs-4" href="{{ url_for('home') }}">Uniclass</a>
+            <a class="navbar-brand" href="{{ url_for('main.index') }}">UniClass</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('home') }}">Home</a>
+                        <a class="nav-link" href="{{ url_for('main.index') }}">
+                            <i class="fas fa-home me-1"></i> Home
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#features">Features</a>
+                        <a class="nav-link" href="{{ url_for('classroom.index') }}">
+                            <i class="fas fa-chalkboard me-1"></i> Classrooms
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#about">About</a>
+                        <a class="nav-link" href="{{ url_for('timetable.index') }}">
+                            <i class="fas fa-calendar-alt me-1"></i> Timetable
+                        </a>
                     </li>
-                </ul>
-                <div class="d-flex gap-2">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('assignments.index') }}">
+                            <i class="fas fa-tasks me-1"></i> Assignments
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('materials.index') }}">
+                            <i class="fas fa-book me-1"></i> Study Materials
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('lost_found.index') }}">
+                            <i class="fas fa-search me-1"></i> Lost & Found
+                        </a>
+                    </li>
                     {% if current_user.is_authenticated %}
-                        <a href="{{ url_for('logout') }}" class="btn btn-outline-primary">Logout</a>
-                    {% else %}
-                        <a href="{{ url_for('login') }}" class="btn btn-outline-primary">Login</a>
-                        <a href="{{ url_for('signup') }}" class="btn btn-primary">Sign Up</a>
+                        {% if current_user.role == 'student' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('student.index') }}">
+                                <i class="fas fa-user-graduate me-1"></i> Student Panel
+                            </a>
+                        </li>
+                        {% elif current_user.role == 'admin' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('admin.index') }}">
+                                <i class="fas fa-cog me-1"></i> Admin Panel
+                            </a>
+                        </li>
+                        {% elif current_user.role == 'teacher' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('teacher.index') }}">
+                                <i class="fas fa-chalkboard-teacher me-1"></i> Teacher Panel
+                            </a>
+                        </li>
+                        {% endif %}
                     {% endif %}
-                </div>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <button class="theme-toggle" id="themeToggle">
+                            <i class="fas fa-moon"></i>
+                        </button>
+                    </li>
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            {{ current_user.name }} ({{ current_user.role.title() if current_user.role else 'User' }})
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}">Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Logout</a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.register') }}">Register</a>
+                    </li>
+                    {% endif %}
+                </ul>
             </div>
         </div>
     </nav>
 
     <!-- Flash Messages -->
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <div class="container mt-5 pt-4">
-                {% for message in messages %}
-                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+    <div class="container mt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show">
                         {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
+            {% endif %}
+        {% endwith %}
+    </div>
 
     <!-- Main Content -->
-    {% block content %}{% endblock %}
+    <main>
+        {% block content %}{% endblock %}
+    </main>
 
     <!-- Footer -->
-    <footer class="bg-light py-4 mt-5">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-4">
-                    <h5 class="mb-3">Quick Links</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="#" class="text-decoration-none">About Us</a></li>
-                        <li><a href="#" class="text-decoration-none">Contact</a></li>
-                        <li><a href="#" class="text-decoration-none">Privacy Policy</a></li>
-                        <li><a href="#" class="text-decoration-none">Terms of Service</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-4">
-                    <h5 class="mb-3">Connect With Us</h5>
-                    <div class="d-flex gap-3">
-                        <a href="#" class="text-decoration-none"><i class="fab fa-facebook fa-lg"></i></a>
-                        <a href="#" class="text-decoration-none"><i class="fab fa-twitter fa-lg"></i></a>
-                        <a href="#" class="text-decoration-none"><i class="fab fa-instagram fa-lg"></i></a>
-                        <a href="#" class="text-decoration-none"><i class="fab fa-linkedin fa-lg"></i></a>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <h5 class="mb-3">Contact Info</h5>
-                    <p class="mb-1"><i class="fas fa-envelope me-2"></i>support@uniclass.com</p>
-                    <p class="mb-1"><i class="fas fa-phone me-2"></i>(555) 123-4567</p>
-                </div>
-            </div>
-            <hr>
-            <div class="text-center">
-                <p class="mb-0">&copy; {{ now.year }} Uniclass. All rights reserved.</p>
-            </div>
+    <footer class="footer mt-5 py-3">
+        <div class="container text-center">
+            <span class="text-muted">&copy; <span id="currentYear"></span> UniClass. All rights reserved.</span>
         </div>
     </footer>
 
-    <!-- Theme Toggle Button -->
-    <button id="themeToggle" aria-label="Toggle theme">
-        <i class="fas fa-moon"></i>
-    </button>
-
-    <!-- Bootstrap Bundle with Popper -->
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Custom JavaScript -->
-    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        // Set current year in footer
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const icon = themeToggle.querySelector('i');
+        
+        // Check for saved theme preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            icon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        });
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

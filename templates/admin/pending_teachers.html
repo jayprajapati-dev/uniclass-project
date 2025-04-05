@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Pending Teacher Approvals - UniClass{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Pending Teacher Approvals</h2>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    {% if teachers %}
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Username</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for teacher in teachers %}
+                        <tr>
+                            <td>{{ teacher.name or teacher.username }}</td>
+                            <td>{{ teacher.email }}</td>
+                            <td>{{ teacher.username }}</td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <form action="{{ url_for('admin.approve_teacher', user_id=teacher.id) }}" method="POST" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-success btn-sm" title="Approve">
+                                            <i class="fas fa-check"></i> Approve
+                                        </button>
+                                    </form>
+                                    
+                                    <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#rejectModal{{ teacher.id }}" title="Reject">
+                                        <i class="fas fa-times"></i> Reject
+                                    </button>
+                                    
+                                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal{{ teacher.id }}" title="Delete">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                                
+                                <!-- Reject Modal -->
+                                <div class="modal fade" id="rejectModal{{ teacher.id }}" tabindex="-1" aria-labelledby="rejectModalLabel{{ teacher.id }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="rejectModalLabel{{ teacher.id }}">Reject Teacher Application</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <form action="{{ url_for('admin.reject_teacher', user_id=teacher.id) }}" method="POST">
+                                                <div class="modal-body">
+                                                    <p>Are you sure you want to reject the teacher application for <strong>{{ teacher.name or teacher.username }}</strong>?</p>
+                                                    <div class="mb-3">
+                                                        <label for="reject_reason{{ teacher.id }}" class="form-label">Reason for Rejection (Optional)</label>
+                                                        <textarea class="form-control" id="reject_reason{{ teacher.id }}" name="reason" rows="3"></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                    <button type="submit" class="btn btn-warning">Reject</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Delete Modal -->
+                                <div class="modal fade" id="deleteModal{{ teacher.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ teacher.id }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="deleteModalLabel{{ teacher.id }}">Delete Teacher Account</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Are you sure you want to delete the teacher account for <strong>{{ teacher.name or teacher.username }}</strong>? This action cannot be undone.</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <form action="{{ url_for('admin.delete_pending_teacher', user_id=teacher.id) }}" method="POST" class="d-inline">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">No pending teacher approvals.</div>
+    {% endif %}
+</div>
+{% endblock %} 

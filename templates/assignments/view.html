@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}{{ assignment.title }} - Assignment Details{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Assignment Details -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">{{ assignment.title }}</h4>
+            <span class="badge {% if assignment.due_date < now() %}bg-danger{% else %}bg-primary{% endif %}">
+                Due: {{ assignment.due_date.strftime('%Y-%m-%d') }}
+            </span>
+        </div>
+        <div class="card-body">
+            <p class="card-text">{{ assignment.description }}</p>
+            {% if assignment.file_path %}
+            <a href="{{ url_for('static', filename='uploads/assignments/' + assignment.file_path) }}" class="btn btn-outline-primary" target="_blank">
+                <i class="fas fa-download"></i> Download Assignment File
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if current_user.is_student %}
+        <!-- Student Submission Section -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Your Submission</h5>
+            </div>
+            <div class="card-body">
+                {% if student_submission %}
+                    <div class="mb-3">
+                        <p><strong>Submitted:</strong> {{ student_submission.submitted_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                        {% if student_submission.file_path %}
+                            <a href="{{ url_for('static', filename='uploads/submissions/' + student_submission.file_path) }}" class="btn btn-outline-primary" target="_blank">
+                                <i class="fas fa-file-alt"></i> View Your Submission
+                            </a>
+                        {% endif %}
+                    </div>
+                    {% if student_submission.grade %}
+                        <div class="alert alert-info">
+                            <h6>Grade: {{ student_submission.grade }}</h6>
+                            {% if student_submission.feedback %}
+                                <p class="mb-0"><strong>Feedback:</strong> {{ student_submission.feedback }}</p>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% else %}
+                    {% if assignment.due_date > now() %}
+                        <a href="{{ url_for('assignments.submit', assignment_id=assignment.id) }}" class="btn btn-primary">
+                            <i class="fas fa-upload me-2"></i>Submit Assignment
+                        </a>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Assignment submission deadline has passed.
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+
+    {% if current_user.is_teacher or current_user.is_admin %}
+        <!-- All Submissions Section -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Student Submissions</h5>
+            </div>
+            <div class="card-body">
+                {% if submissions %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Submitted At</th>
+                                    <th>File</th>
+                                    <th>Grade</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for submission in submissions %}
+                                <tr>
+                                    <td>{{ submission.student.name }}</td>
+                                    <td>{{ submission.submitted_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                    <td>
+                                        {% if submission.file_path %}
+                                        <a href="{{ url_for('static', filename='uploads/submissions/' + submission.file_path) }}" target="_blank">
+                                            View Submission
+                                        </a>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ submission.grade if submission.grade else 'Not graded' }}</td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#gradeModal{{ submission.id }}">
+                                            Grade
+                                        </button>
+                                        
+                                        <!-- Grade Modal -->
+                                        <div class="modal fade" id="gradeModal{{ submission.id }}" tabindex="-1">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Grade Submission</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <form action="{{ url_for('assignments.grade', assignment_id=assignment.id) }}" method="POST">
+                                                        <div class="modal-body">
+                                                            <input type="hidden" name="submission_id" value="{{ submission.id }}">
+                                                            <div class="mb-3">
+                                                                <label for="grade" class="form-label">Grade</label>
+                                                                <input type="text" class="form-control" id="grade" name="grade" value="{{ submission.grade }}" required>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label for="feedback" class="form-label">Feedback</label>
+                                                                <textarea class="form-control" id="feedback" name="feedback" rows="3">{{ submission.feedback }}</textarea>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                            <button type="submit" class="btn btn-primary">Save Grade</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">No submissions yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Add any JavaScript needed for the view page
+</script>
+{% endblock %} 

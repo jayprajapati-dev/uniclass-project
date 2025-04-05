@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Government Polytechnic Palanpur - Sell Study Material{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card mb-4">
+                <div class="card-header pb-0">
+                    <h6>Sell Study Material</h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('materials.create') }}" enctype="multipart/form-data">
+                        {{ form.csrf_token }}
+                        
+                        <!-- Basic Information -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Title</label>
+                                    {{ form.title(class="form-control") }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Category</label>
+                                    {{ form.category(class="form-select") }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Department</label>
+                                    {{ form.department(class="form-select") }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Semester</label>
+                                    {{ form.semester(class="form-control") }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Subject</label>
+                                    {{ form.subject(class="form-control") }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Condition</label>
+                                    {{ form.condition(class="form-select") }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Price Information -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Price (₹)</label>
+                                    {{ form.price(class="form-control") }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Price Negotiable</label>
+                                    <div class="form-check form-switch mt-2">
+                                        {{ form.is_negotiable(class="form-check-input") }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Description -->
+                        <div class="mb-3">
+                            <div class="form-group">
+                                <label class="form-label">Description</label>
+                                {{ form.description(class="form-control", rows="4") }}
+                            </div>
+                        </div>
+                        
+                        <!-- Images -->
+                        <div class="mb-3">
+                            <div class="form-group">
+                                <label class="form-label">Images (up to 5)</label>
+                                {{ form.images(class="form-control", multiple="multiple") }}
+                                <small class="form-text text-muted">Upload PNG, JPG, or JPEG files</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Pickup Information -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Pickup Location</label>
+                                    {{ form.pickup_location(class="form-control") }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Contact Preference</label>
+                                    {{ form.contact_preference(class="form-select") }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary">List Material</button>
+                            <a href="{{ url_for('materials.index') }}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

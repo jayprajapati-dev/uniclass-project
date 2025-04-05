@@ -7,85 +7,240 @@
 
 {% block content %}
 <!-- Hero Section -->
-<section class="hero py-5 mt-5">
+<br/>
+<br/>
+<br/>
+<section class="hero-section text-center py-5">
     <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6 mb-4 mb-lg-0">
-                <h1 class="display-4 fw-bold mb-4">Welcome to Uniclass</h1>
-                <p class="lead mb-4">Your smart college companion that helps you stay organized, manage assignments, and excel in your studies.</p>
-                {% if not current_user.is_authenticated %}
-                    <div class="d-grid gap-2 d-sm-flex">
-                        <a href="{{ url_for('signup') }}" class="btn btn-primary btn-lg px-4 me-sm-3">Get Started</a>
-                        <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg px-4">Login</a>
+        <h1 class="display-4 mb-4">Welcome to UniClass</h1>
+        <p class="lead mb-4">Your smart college companion that helps you find classrooms, manage study materials and track assignments efficiently.</p>
+        {% if not current_user.is_authenticated %}
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">Get Started</a>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-lg">Login</a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Tools Section -->
+<section class="tools-section py-5">
+    <div class="container">
+        <h2 class="section-title text-center mb-5">Our Tools</h2>
+        <div class="row g-4">
+            <!-- Smart Classroom -->
+            <div class="col-md-6">
+                <div class="tool-card d-flex align-items-center p-4">
+                    <div class="tool-icon me-4">
+                        <i class="fas fa-chalkboard fa-2x"></i>
                     </div>
-                {% endif %}
+                    <div class="tool-content flex-grow-1">
+                        <h3 class="h5 mb-2">Smart Classroom Finder</h3>
+                        <p class="mb-3">Find available classrooms instantly</p>
+                        <a href="{{ url_for('classroom.index') }}" class="btn btn-sm btn-primary">Find Room</a>
+                    </div>
+                </div>
             </div>
-            <div class="col-lg-6">
-                <img src="{{ url_for('static', filename='images/hero.svg') }}" alt="Uniclass Hero" class="img-fluid">
+
+            <!-- Study Materials -->
+            <div class="col-md-6">
+                <div class="tool-card d-flex align-items-center p-4">
+                    <div class="tool-icon me-4">
+                        <i class="fas fa-book fa-2x"></i>
+                    </div>
+                    <div class="tool-content flex-grow-1">
+                        <h3 class="h5 mb-2">Study Material Platform</h3>
+                        <p class="mb-3">Buy and sell study materials</p>
+                        <a href="{{ url_for('materials.index') }}" class="btn btn-sm btn-primary">Browse</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lost & Found -->
+            <div class="col-md-6">
+                <div class="tool-card d-flex align-items-center p-4">
+                    <div class="tool-icon me-4">
+                        <i class="fas fa-search fa-2x"></i>
+                    </div>
+                    <div class="tool-content flex-grow-1">
+                        <h3 class="h5 mb-2">Lost & Found Portal</h3>
+                        <p class="mb-3">Report and find lost items</p>
+                        <a href="{{ url_for('lost_found.index') }}" class="btn btn-sm btn-primary">Search Items</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assignments -->
+            <div class="col-md-6">
+                <div class="tool-card d-flex align-items-center p-4">
+                    <div class="tool-icon me-4">
+                        <i class="fas fa-file-alt fa-2x"></i>
+                    </div>
+                    <div class="tool-content flex-grow-1">
+                        <h3 class="h5 mb-2">Digital Assignment System</h3>
+                        <p class="mb-3">Show, Submit and track assignments System</p>
+                        <a href="{{ url_for('assignments.index') }}" class="btn btn-sm btn-primary">View Tasks</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timetable -->
+            <div class="col-md-6">
+                <div class="tool-card d-flex align-items-center p-4">
+                    <div class="tool-icon me-4">
+                        <i class="fas fa-calendar-check fa-2x"></i>
+                    </div>
+                    <div class="tool-content flex-grow-1">
+                        <h3 class="h5 mb-2">AI Smart Timetable</h3>
+                        <p class="mb-3">Show your timetable and get notified for your classes.</p>
+                        <a href="{{ url_for('timetable.index') }}" class="btn btn-sm btn-primary">View Schedule</a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Key Features Section -->
-<section class="py-5">
+<!-- Benefits Section -->
+<section class="benefits-section py-5 bg-light">
     <div class="container">
-        <h2 class="text-center section-title">Key Features</h2>
+        <h2 class="section-title text-center mb-5">Why Choose UniClass?</h2>
         <div class="row g-4">
             <div class="col-md-4">
-                <div class="feature-card text-center">
-                    <i class="fas fa-tasks feature-icon"></i>
-                    <h3>Task Management</h3>
-                    <p>Keep track of assignments, deadlines, and projects in one place.</p>
+                <div class="benefit-card text-center">
+                    <div class="benefit-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3>Save Time</h3>
+                    <p>Quickly find classrooms, manage assignments, and access study materials all in one place.</p>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="feature-card text-center">
-                    <i class="fas fa-calendar-alt feature-icon"></i>
-                    <h3>Schedule Planner</h3>
-                    <p>Organize your classes and study sessions efficiently.</p>
+                <div class="benefit-card text-center">
+                    <div class="benefit-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>Community Driven</h3>
+                    <p>Connect with fellow students, share resources, and help each other succeed.</p>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="feature-card text-center">
-                    <i class="fas fa-chart-line feature-icon"></i>
-                    <h3>Progress Tracking</h3>
-                    <p>Monitor your academic performance and set goals.</p>
+                <div class="benefit-card text-center">
+                    <div class="benefit-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3>Easy Access</h3>
+                    <p>Access all features from any device, anytime, anywhere on campus.</p>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- What Students Say Section -->
-<section class="py-5 bg-light">
-    <div class="container">
-        <h2 class="text-center section-title">What Students Say</h2>
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="testimonial-card">
-                    <p class="mb-3">"Uniclass has completely transformed how I manage my college life. The interface is intuitive and the features are exactly what students need."</p>
-                    <h5 class="mb-1">Sarah Johnson</h5>
-                    <p class="student-info">Computer Science, Year 3</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="testimonial-card">
-                    <p class="mb-3">"I love how easy it is to keep track of assignments and deadlines. The reminder system has saved me multiple times!"</p>
-                    <h5 class="mb-1">Michael Chen</h5>
-                    <p class="student-info">Business Administration, Year 2</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="testimonial-card">
-                    <p class="mb-3">"The progress tracking feature helps me stay motivated and focused on my academic goals. Highly recommend!"</p>
-                    <h5 class="mb-1">Emily Rodriguez</h5>
-                    <p class="student-info">Psychology, Year 4</p>
-                </div>
-            </div>
-        </div>
+<!-- Call to Action -->
+<section class="cta-section py-5">
+    <div class="container text-center">
+        <h2 class="mb-4">Ready to Get Started?</h2>
+        <p class="lead mb-4">Join UniClass today and experience a smarter way to manage your college life.</p>
+        {% if not current_user.is_authenticated %}
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">Sign Up Now</a>
+        {% endif %}
     </div>
 </section>
+
+<style>
+.hero-section {
+    background: linear-gradient(135deg, #6B73FF 0%, #000DFF 100%);
+    color: white;
+    padding: 100px 0;
+}
+
+.tool-card {
+    background: var(--card-bg);
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    height: 100%;
+    border: 1px solid var(--border-color);
+}
+
+.tool-card:hover {
+    transform: translateY(-5px);
+}
+
+.tool-icon {
+    color: var(--link-color);
+    background: var(--card-bg);
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tool-content h3 {
+    color: var(--heading-color);
+    margin: 0;
+}
+
+.tool-content p {
+    color: var(--card-text);
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.benefit-card {
+    background: var(--card-bg);
+    border-radius: 10px;
+    padding: 30px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    height: 100%;
+    border: 1px solid var(--border-color);
+}
+
+.benefit-card:hover {
+    transform: translateY(-5px);
+}
+
+.benefit-icon {
+    font-size: 2.5rem;
+    color: var(--link-color);
+    margin-bottom: 20px;
+}
+
+.section-title {
+    color: var(--heading-color);
+    font-weight: bold;
+}
+
+.cta-section {
+    background: linear-gradient(135deg, #000DFF 0%, #6B73FF 100%);
+    color: white;
+}
+
+.btn-primary {
+    background: var(--link-color);
+    border-color: var(--link-color);
+}
+
+.btn-primary:hover {
+    background: var(--link-hover);
+    border-color: var(--link-hover);
+}
+
+.btn-outline-primary {
+    color: white;
+    border-color: white;
+}
+
+.btn-outline-primary:hover {
+    background: white;
+    color: var(--link-color);
+}
+</style>
 {% endblock %}
 
 {% block scripts %}

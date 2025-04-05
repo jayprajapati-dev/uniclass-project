@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Teacher - UniClass{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Edit Teacher</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ teacher.name }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" value="{{ teacher.username }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ teacher.email }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="department" class="form-label">Department</label>
+                            <select class="form-select" id="department" name="department" required>
+                                <option value="Civil Engineering" {% if teacher.department == 'Civil Engineering' %}selected{% endif %}>Civil Engineering (CE)</option>
+                                <option value="Mechanical Engineering" {% if teacher.department == 'Mechanical Engineering' %}selected{% endif %}>Mechanical Engineering (ME)</option>
+                                <option value="Electrical Engineering" {% if teacher.department == 'Electrical Engineering' %}selected{% endif %}>Electrical Engineering (EE)</option>
+                                <option value="Electronics & Communication Engineering" {% if teacher.department == 'Electronics & Communication Engineering' %}selected{% endif %}>Electronics & Communication Engineering (EC)</option>
+                                <option value="Computer Engineering" {% if teacher.department == 'Computer Engineering' %}selected{% endif %}>Computer Engineering (CE)</option>
+                                <option value="Information Technology" {% if teacher.department == 'Information Technology' %}selected{% endif %}>Information Technology (IT)</option>
+                                <option value="Information and Communication Technology" {% if teacher.department == 'Information and Communication Technology' %}selected{% endif %}>Information and Communication Technology (ICT)</option>
+                                <option value="Automobile Engineering" {% if teacher.department == 'Automobile Engineering' %}selected{% endif %}>Automobile Engineering</option>
+                                <option value="Petroleum Engineering" {% if teacher.department == 'Petroleum Engineering' %}selected{% endif %}>Petroleum Engineering</option>
+                                <option value="Architecture Engineering" {% if teacher.department == 'Architecture Engineering' %}selected{% endif %}>Architecture Engineering</option>
+                                <option value="Environmental Engineering" {% if teacher.department == 'Environmental Engineering' %}selected{% endif %}>Environmental Engineering</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">New Password (leave blank to keep current)</label>
+                            <input type="password" class="form-control" id="password" name="password">
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('admin.manage_teachers') }}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Verification Chat{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Verification Chat</h5>
+                    <a href="{{ url_for('verification.verify_item', 
+                                      item_type='lost' if verification.lost_item.user_id == current_user.id else 'found',
+                                      item_id=verification.lost_item.id if verification.lost_item.user_id == current_user.id else verification.found_item.id) }}" 
+                       class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Verification
+                    </a>
+                </div>
+                
+                <!-- Chat Messages -->
+                <div class="card-body chat-container" style="height: 400px; overflow-y: auto;" id="chatContainer">
+                    {% for message in messages %}
+                        <div class="mb-3 {% if message.is_system %}text-center{% elif message.sender_id == current_user.id %}text-end{% endif %}">
+                            {% if message.is_system %}
+                                <!-- System Message -->
+                                <div class="system-message">
+                                    <small class="text-muted">{{ message.message }}</small>
+                                </div>
+                            {% else %}
+                                <!-- User Message -->
+                                <div class="d-inline-block p-2 rounded {% if message.sender_id == current_user.id %}bg-primary text-white{% else %}bg-light{% endif %}" 
+                                     style="max-width: 75%;">
+                                    <div class="message-header mb-1">
+                                        <small class="{% if message.sender_id == current_user.id %}text-light{% else %}text-muted{% endif %}">
+                                            {{ message.sender.username }}
+                                        </small>
+                                    </div>
+                                    <p class="mb-1">{{ message.message }}</p>
+                                    <small class="{% if message.sender_id == current_user.id %}text-light{% else %}text-muted{% endif %}">
+                                        {{ message.created_at.strftime('%H:%M') }}
+                                    </small>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Message Input -->
+                {% if verification.verification_status == 'pending' or verification.verification_status == 'in_progress' %}
+                    <div class="card-footer">
+                        <form method="POST" class="d-flex gap-2" id="messageForm">
+                            <input type="text" name="message" class="form-control" placeholder="Type your message..." required>
+                            <button type="submit" class="btn btn-primary">Send</button>
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Item Details -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0">Item Details</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Lost Item</h6>
+                            <p><strong>Title:</strong> {{ verification.lost_item.title }}</p>
+                            <p><strong>Category:</strong> {{ verification.lost_item.category }}</p>
+                            <p><strong>Date Lost:</strong> {{ verification.lost_item.date_lost.strftime('%Y-%m-%d') }}</p>
+                            <p><strong>Location:</strong> {{ verification.lost_item.location }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Found Item</h6>
+                            <p><strong>Title:</strong> {{ verification.found_item.title }}</p>
+                            <p><strong>Category:</strong> {{ verification.found_item.category }}</p>
+                            <p><strong>Date Found:</strong> {{ verification.found_item.date_found.strftime('%Y-%m-%d') }}</p>
+                            <p><strong>Location:</strong> {{ verification.found_item.location }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.chat-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.system-message {
+    background-color: #f8f9fa;
+    padding: 0.5rem 1rem;
+    border-radius: 1rem;
+    display: inline-block;
+    margin: 0.5rem 0;
+}
+
+.message-header {
+    font-size: 0.8rem;
+}
+</style>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chatContainer = document.getElementById('chatContainer');
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+
+    const messageForm = document.getElementById('messageForm');
+    if (messageForm) {
+        messageForm.addEventListener('submit', function() {
+            setTimeout(function() {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 100);
+        });
+    }
+});
+</script>
+{% endblock %}
+{% endblock %}

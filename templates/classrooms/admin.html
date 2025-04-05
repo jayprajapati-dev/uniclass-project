@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Manage Classrooms</h1>
+
+    {% if classrooms %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Room Name</th>
+                    <th>Type</th>
+                    <th>Building</th>
+                    <th>Floor</th>
+                    <th>Department</th>
+                    <th>Location</th>
+                    {% if current_user.is_admin %}
+                    <th>Actions</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for classroom in classrooms %}
+                <tr>
+                    <td>{{ classroom.name }}</td>
+                    <td>{{ classroom.room_type.replace('_', ' ').title() }}</td>
+                    <td>{{ classroom.building }}</td>
+                    <td>{{ classroom.floor }}</td>
+                    <td>{{ classroom.department }}</td>
+                    <td>{{ classroom.location }}</td>
+                    {% if current_user.is_admin %}
+                    <td>
+                        <a href="{{ url_for('classroom.edit', id=classroom.id) }}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <form method="POST" action="{{ url_for('classroom.delete', id=classroom.id) }}" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to deactivate this classroom?')">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </form>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        No classrooms found.
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

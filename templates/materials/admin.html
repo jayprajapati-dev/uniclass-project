@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Study Materials{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Manage Study Materials</h1>
+
+    <!-- Pending Approvals -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4 class="mb-0">Pending Approvals</h4>
+        </div>
+        <div class="card-body">
+            {% if pending_materials %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Type</th>
+                            <th>Branch</th>
+                            <th>Semester</th>
+                            <th>Price</th>
+                            <th>Seller</th>
+                            <th>Listed On</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for material in pending_materials %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('materials.view', id=material.id) }}" target="_blank">
+                                    {{ material.title }}
+                                </a>
+                            </td>
+                            <td>{{ material.material_type|title }}</td>
+                            <td>{{ material.branch }}</td>
+                            <td>{{ material.semester }}</td>
+                            <td>₹{{ "%.2f"|format(material.price) }}</td>
+                            <td>{{ material.seller.username }}</td>
+                            <td>{{ material.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <form action="{{ url_for('materials.approve_material', id=material.id) }}" method="POST" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-success">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                </form>
+                                <form action="{{ url_for('materials.reject_material', id=material.id) }}" method="POST" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="mb-0">No materials pending approval.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Reported Materials -->
+    <div class="card">
+        <div class="card-header">
+            <h4 class="mb-0">Reported Materials</h4>
+        </div>
+        <div class="card-body">
+            {% if reported_materials %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Reports</th>
+                            <th>Latest Report</th>
+                            <th>Reporter</th>
+                            <th>Report Type</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for material in reported_materials %}
+                        {% set latest_report = material.reports|selectattr('status', 'equalto', 'pending')|list|first %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('materials.view', id=material.id) }}" target="_blank">
+                                    {{ material.title }}
+                                </a>
+                            </td>
+                            <td>{{ material.reports|selectattr('status', 'equalto', 'pending')|list|length }}</td>
+                            <td>{{ latest_report.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ latest_report.reporter.username }}</td>
+                            <td>{{ latest_report.report_type|title }}</td>
+                            <td>
+                                <form action="{{ url_for('materials.resolve_report', id=latest_report.id) }}" method="POST" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="action" value="dismiss">
+                                    <button type="submit" class="btn btn-sm btn-secondary" title="Dismiss Report">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </form>
+                                <form action="{{ url_for('materials.resolve_report', id=latest_report.id) }}" method="POST" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="action" value="remove">
+                                    <button type="submit" class="btn btn-sm btn-danger" title="Remove Listing">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="mb-0">No reported materials.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

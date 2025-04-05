@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - UniClass{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Admin Dashboard</h1>
+    
+    <div class="row">
+        <!-- Teacher Management -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Teacher Management</h5>
+                    <p class="card-text">Add and manage teacher accounts</p>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('admin.add_teacher') }}" class="btn btn-primary">Add Teacher</a>
+                        <a href="{{ url_for('admin.manage_teachers') }}" class="btn btn-secondary">Manage Teachers</a>
+                        <a href="{{ url_for('admin.pending_teachers') }}" class="btn btn-warning">Pending Approvals</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Classroom Management -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Classroom Management</h5>
+                    <p class="card-text">Manage classrooms and their availability</p>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('admin.classrooms') }}" class="btn btn-primary">Manage Classrooms</a>
+                        <a href="{{ url_for('classroom_finder.index') }}" class="btn btn-secondary">Classroom Finder</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timetable Management -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Timetable Management</h5>
+                    <p class="card-text">Manage class schedules and timetables</p>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('admin.timetable') }}" class="btn btn-primary">Manage Timetable</a>
+                        <a href="{{ url_for('timetable.index') }}" class="btn btn-secondary">View Timetable</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assignment Management -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Assignment Management</h5>
+                    <p class="card-text">Manage assignments and submissions</p>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('admin.assignments') }}" class="btn btn-primary">Manage Assignments</a>
+                        <a href="{{ url_for('assignments.index') }}" class="btn btn-secondary">View Assignments</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Management -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">User Management</h5>
+                    <p class="card-text">Manage all user accounts</p>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('admin.users') }}" class="btn btn-primary">Manage Users</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports & Analytics -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Reports & Analytics</h5>
+                    <p class="card-text">View system reports and analytics</p>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('reports.list_reports') }}" class="btn btn-primary">View Reports</a>
+                        <a href="{{ url_for('reports.study_materials_report') }}" class="btn btn-secondary">Study Materials Report</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Settings -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">System Settings</h5>
+                    <p class="card-text">Configure system settings and preferences</p>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('admin.settings') }}" class="btn btn-primary">System Settings</a>
+                        <a href="{{ url_for('admin.backup') }}" class="btn btn-secondary">Backup & Restore</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total Users</h5>
+                    <p class="card-text display-4">{{ users|length }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Active Classrooms</h5>
+                    <p class="card-text display-4">{{ classrooms|length }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Assignments</h5>
+                    <p class="card-text display-4">{{ assignments|length }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Approvals</h5>
+                    <p class="card-text display-4">{{ pending_teachers|length }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

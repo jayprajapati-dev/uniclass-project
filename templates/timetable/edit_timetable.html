@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Timetable - UniClass{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header pb-0 d-flex justify-content-between align-items-center">
+                    <h4>Edit Timetable</h4>
+                    <a href="{{ url_for('timetable.edit', id=timetable.id) }}" class="btn btn-secondary">Back to Timetable</a>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('timetable.edit_timetable', id=timetable.id) }}" method="POST">
+                        {{ form.csrf_token }}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="title" class="form-label">Title</label>
+                                    <input type="text" class="form-control" id="title" name="title" value="{{ timetable.title }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="department" class="form-label">Department</label>
+                                    <select class="form-select" id="department" name="department" required>
+                                        {% for dept in departments %}
+                                        <option value="{{ dept.name }}" {% if dept.name == timetable.department %}selected{% endif %}>{{ dept.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="semester" class="form-label">Semester</label>
+                                    <select class="form-select" id="semester" name="semester" required>
+                                        {% for sem in semesters %}
+                                        <option value="{{ sem }}" {% if sem|string == timetable.semester %}selected{% endif %}>Semester {{ sem }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="start_date" class="form-label">Start Date (W.E.F.)</label>
+                                    <input type="date" class="form-control" id="start_date" name="start_date" value="{{ timetable.start_date.strftime('%Y-%m-%d') }}" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">Update Timetable</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

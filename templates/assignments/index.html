@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Digital Assignment System{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <br/>
+    <br/>
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2>Digital Assignment System</h2>
+            <p class="text-muted">View and submit assignments digitally or manually as per teacher's requirements.</p>
+        </div>
+    </div>
+
+    <!-- Create Assignment (Only for teachers) -->
+    {% if current_user.is_authenticated and current_user.is_admin %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Create New Assignment</h5>
+                    <a href="{{ url_for('assignments.create') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Create Assignment
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Assignments List -->
+    <div class="row">
+        {% for assignment in assignments %}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ assignment.title }}</h5>
+                    <p class="card-text">{{ assignment.description[:200] }}{% if assignment.description|length > 200 %}...{% endif %}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-{{ 'success' if assignment.submission_type == 'digital' else 'warning' }}">
+                                {{ 'Digital Submission' if assignment.submission_type == 'digital' else 'Manual Submission' }}
+                            </span>
+                            <small class="text-muted ms-2">Due: {{ assignment.due_date.strftime('%Y-%m-%d %H:%M') }}</small>
+                        </div>
+                        <a href="{{ url_for('assignments.view', id=assignment.id) }}" class="btn btn-primary">View Details</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                No assignments available at the moment.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
