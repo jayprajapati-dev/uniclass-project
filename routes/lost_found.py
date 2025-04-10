@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from flask_socketio import emit, join_room, leave_room
 from models import db, LostItem, FoundItem, LostFoundChat, ItemVerification, LostFoundItem, Message
 from werkzeug.utils import secure_filename
-from forms import LostItemForm, FoundItemForm
+from forms import LostItemForm, FoundItemForm, LostFoundForm
 from extensions import socketio
 import os
 from datetime import datetime, timedelta
@@ -41,66 +41,96 @@ def find_potential_matches(item, is_lost=True):
 @lost_found_bp.route('/')
 def index():
     """Display all lost and found items with filters"""
-    category = request.args.get('category')
-    type = request.args.get('type', 'all')
-    status = request.args.get('status', 'open')
-    search = request.args.get('search', '')
+    form = LostFoundForm()
+    page = request.args.get('page', 1, type=int)
+    category = request.args.get('category', '')
+    item_type = request.args.get('type', '')
+    status = request.args.get('status', '')
+    search_query = request.args.get('search_query', '')
+    sort = request.args.get('sort', 'newest')
     
+    # Build query
     query = LostFoundItem.query
     
+    # Apply filters
+    if search_query:
+        query = query.filter(
+            (LostFoundItem.title.ilike(f'%{search_query}%')) |
+            (LostFoundItem.description.ilike(f'%{search_query}%'))
+        )
     if category:
         query = query.filter_by(category=category)
-    if type != 'all':
-        query = query.filter_by(type=type)
-    if status != 'all':
+    if item_type:
+        query = query.filter_by(type=item_type)
+    if status:
         query = query.filter_by(status=status)
-    if search:
-        query = query.filter(
-            (LostFoundItem.title.ilike(f'%{search}%')) |
-            (LostFoundItem.description.ilike(f'%{search}%'))
-        )
-        
-    items = query.order_by(LostFoundItem.created_at.desc()).all()
     
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return jsonify({
-            'items': [item.to_dict() for item in items]
-        })
+    # Apply sorting
+    if sort == 'oldest':
+        query = query.order_by(LostFoundItem.created_at.asc())
+    else:  # newest first (default)
+        query = query.order_by(LostFoundItem.created_at.desc())
     
-    return render_template('lost_found/index.html', items=items)
+    # Paginate results
+    items = query.paginate(page=page, per_page=12, error_out=False)
+    
+    # Get distinct categories
+    categories = db.session.query(LostFoundItem.category).distinct().all()
+    categories = [cat[0] for cat in categories if cat[0]]  # Extract category names and filter out None
+    
+    # Get unread message count for Lost & Found
+    unread_count = 0
+    if current_user.is_authenticated:
+        unread_count = Message.query.filter_by(
+            receiver_id=current_user.id,
+            message_type='lost_found',
+            read=False
+        ).count()
+    
+    return render_template('lost_found/index.html',
+                         items=items,
+                         form=form,
+                         categories=categories,
+                         current_category=category,
+                         current_type=item_type,
+                         current_sort=sort,
+                         status=status,
+                         search_query=search_query,
+                         unread_count=unread_count)
 
 @lost_found_bp.route('/report', methods=['GET', 'POST'])
 @login_required
 def report_item():
-    """Report a lost or found item"""
-    if request.method == 'POST':
-        try:
-            item = LostFoundItem(
-                title=request.form['title'],
-                description=request.form['description'],
-                category=request.form['category'],
-                location=request.form['location'],
-                date=datetime.strptime(request.form['date'], '%Y-%m-%d'),
-                type=request.form['type'],
-                reporter_id=current_user.id
-            )
-            
-            if 'image' in request.files:
-                file = request.files['image']
-                if file and allowed_file(file.filename):
-                    filename = secure_filename(file.filename)
-                    file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
-                    item.image_path = filename
-            
-            db.session.add(item)
-            db.session.commit()
-            flash('Item reported successfully!', 'success')
-            return redirect(url_for('lost_found.index'))
-        except Exception as e:
-            flash(f'Error reporting item: {str(e)}', 'error')
-            return redirect(url_for('lost_found.report_item'))
-            
-    return render_template('lost_found/report.html')
+    form = LostFoundForm()
+    if form.validate_on_submit():
+        # Handle file upload
+        image_url = None
+        if form.image.data:
+            file = form.image.data
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+            image_url = url_for('static', filename=f'uploads/lost_found/{filename}')
+
+        # Create new item
+        item = LostFoundItem(
+            title=form.title.data,
+            description=form.description.data,
+            category=form.category.data,
+            location=form.location.data,
+            date=form.date_found.data,
+            type=form.item_type.data,
+            image_path=image_url,
+            reporter_id=current_user.id
+        )
+        
+        db.session.add(item)
+        db.session.commit()
+        
+        flash('Item reported successfully!', 'success')
+        return redirect(url_for('lost_found.index'))
+    
+    return render_template('lost_found/report.html', form=form)
 
 @lost_found_bp.route('/item/<int:id>')
 def show_item(id):
@@ -182,8 +212,8 @@ def admin_delete_item(id):
     
     item = LostFoundItem.query.get_or_404(id)
     try:
-        if item.image_path:
-            os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], item.image_path))
+        if item.image_url:
+            os.remove(item.image_url)
         db.session.delete(item)
         db.session.commit()
         return jsonify({'success': True, 'message': 'Item deleted successfully'})
@@ -638,3 +668,35 @@ def send_chat_message(item_id):
     db.session.commit()
 
     return jsonify({'success': True})
+
+@lost_found_bp.route('/item/<int:item_id>')
+def detail(item_id):
+    """View details of a specific lost or found item"""
+    item = LostFoundItem.query.get_or_404(item_id)
+    return render_template('lost_found/show.html', item=item)
+
+@lost_found_bp.route('/item/<int:id>/delete', methods=['POST'])
+@login_required
+def delete_item(id):
+    """Delete an item (for item owner)"""
+    item = LostFoundItem.query.get_or_404(id)
+    
+    if item.reporter_id != current_user.id:
+        flash('You are not authorized to delete this item.', 'error')
+        return redirect(url_for('lost_found.index'))
+    
+    try:
+        if item.image_path:
+            # Remove the image file
+            image_path = os.path.join(current_app.static_folder, item.image_path)
+            if os.path.exists(image_path):
+                os.remove(image_path)
+        
+        db.session.delete(item)
+        db.session.commit()
+        flash('Item deleted successfully.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error deleting item.', 'error')
+    
+    return redirect(url_for('lost_found.index'))

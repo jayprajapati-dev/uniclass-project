@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, TextAreaField, SelectField, DateTimeField, IntegerField, BooleanField, FileField, TimeField, SubmitField, RadioField, FloatField
+from wtforms import StringField, PasswordField, TextAreaField, SelectField, DateTimeField, IntegerField, BooleanField, FileField, TimeField, SubmitField, RadioField, FloatField, DateField
 from wtforms.validators import DataRequired, Email, Length, EqualTo, Optional, NumberRange, ValidationError, Regexp
 from flask_wtf.file import FileAllowed, FileField
 from models import User
@@ -65,19 +65,19 @@ class AddTeacherForm(FlaskForm):
     submit = SubmitField('Add Teacher')
 
 class ClassroomForm(FlaskForm):
-    room_number = StringField('Room Number', validators=[DataRequired()])
-    room_type = SelectField('Room Type', choices=[
-        ('lecture_room', 'Lecture Room'),
-        ('lab_room', 'Lab Room'),
-        ('computer_room', 'Computer Room'),
-        ('working_room', 'Working Room (Teacher Office)')
-    ], validators=[DataRequired()])
-    building = StringField('Building Name', validators=[DataRequired()])
+    room_number = StringField('Room Number', validators=[DataRequired(), Length(min=1, max=50)])
+    building = StringField('Building', validators=[DataRequired(), Length(min=1, max=50)])
     floor = SelectField('Floor', choices=[
         ('GF', 'Ground Floor'),
         ('1F', '1st Floor'),
         ('2F', '2nd Floor'),
         ('3F', '3rd Floor')
+    ], validators=[DataRequired()])
+    room_type = SelectField('Room Type', choices=[
+        ('lecture_room', 'Lecture Room'),
+        ('lab_room', 'Laboratory Room'),
+        ('computer_room', 'Computer Room'),
+        ('working_room', 'Working Room')
     ], validators=[DataRequired()])
     department = SelectField('Department', choices=[
         ('CE', 'Civil Engineering (CE)'),
@@ -87,17 +87,17 @@ class ClassroomForm(FlaskForm):
         ('IT', 'Information Technology (IT)'),
         ('ICT', 'Information and Communication Technology (ICT)')
     ], validators=[DataRequired()])
-    location = StringField('Location Details', validators=[DataRequired()])
-    submit = SubmitField('Save')
+    location = StringField('Location', validators=[DataRequired(), Length(min=1, max=100)])
+    submit = SubmitField('Save Classroom')
 
 class ClassroomSearchForm(FlaskForm):
-    search_query = StringField('Search Room Number', validators=[Optional()])
+    search_query = StringField('Search')
     room_type = SelectField('Room Type', choices=[
         ('', 'All Types'),
         ('lecture_room', 'Lecture Room'),
-        ('lab_room', 'Lab Room'),
+        ('lab_room', 'Laboratory Room'),
         ('computer_room', 'Computer Room'),
-        ('working_room', 'Working Room (Teacher Office)')
+        ('working_room', 'Working Room')
     ])
     department = SelectField('Department', choices=[
         ('', 'All Departments'),
@@ -227,8 +227,10 @@ class MaterialSearchForm(FlaskForm):
     material_type = SelectField('Material Type', choices=[
         ('', 'All Types'),
         ('book', 'Book'),
-        ('notes', 'Notes'),
-        
+        ('book_pdf', 'Book PDF'),
+        ('subject_material', 'Subject Material'),
+        ('material_pdf', 'Material PDF'),
+        ('question_papers', 'Question Papers'),
         ('other', 'Other')
     ], validators=[Optional()])
     branch = SelectField('Branch', choices=[
@@ -249,14 +251,19 @@ class MaterialSearchForm(FlaskForm):
         ('5', '5th Semester'),
         ('6', '6th Semester')   
     ], validators=[Optional()])
-    min_price = FloatField('Min Price', validators=[Optional(), NumberRange(min=0)])
-    max_price = FloatField('Max Price', validators=[Optional(), NumberRange(min=0)])
     condition = SelectField('Condition', choices=[
         ('', 'Any Condition'),
         ('new', 'New'),
         ('like_new', 'Like New'),
         ('good', 'Good'),
-        ('fair', 'Fair')
+        ('old', 'Old (Fair)')
+    ], validators=[Optional()])
+    sort_by = SelectField('Sort By', choices=[
+        ('', 'Default'),
+        ('price_asc', 'Price: Low to High'),
+        ('price_desc', 'Price: High to Low'),
+        ('date_desc', 'Newest First'),
+        ('date_asc', 'Oldest First')
     ], validators=[Optional()])
     submit = SubmitField('Search')
 
@@ -272,18 +279,62 @@ class MaterialReportForm(FlaskForm):
     submit = SubmitField('Submit Report')
 
 class TimetableForm(FlaskForm):
-    semester = StringField('Semester', validators=[DataRequired()])
-    year = StringField('Year', validators=[DataRequired()])
-    department = SelectField('Department', choices=[
-        ('Computer Science', 'Computer Science'),
-        ('Electronics', 'Electronics'),
-        ('Mechanical', 'Mechanical'),
-        ('Civil', 'Civil'),
-        ('Information Technology', 'Information Technology')
+    branch = SelectField('Department', choices=[
+        ('CE', 'Civil Engineering (CE)'),
+        ('ME', 'Mechanical Engineering (ME)'),
+        ('EE', 'Electrical Engineering (EE)'),
+        ('EC', 'Electronics & Communication Engineering (EC)'),
+        ('IT', 'Information Technology (IT)'),
+        ('ICT', 'Information and Communication Technology (ICT)')
     ], validators=[DataRequired()])
+    semester = SelectField('Semester', choices=[
+        ('1', 'Semester 1'),
+        ('2', 'Semester 2'),
+        ('3', 'Semester 3'),
+        ('4', 'Semester 4'),
+        ('5', 'Semester 5'),
+        ('6', 'Semester 6')
+    ], validators=[DataRequired()])
+    classroom = StringField('Classroom', validators=[DataRequired()])
+    start_date = DateField('Start Date', validators=[DataRequired()])
+    submit = SubmitField('Create Timetable')
 
 class UserProfileForm(FlaskForm):
     email_notifications = BooleanField('Email Notifications')
     push_notifications = BooleanField('Push Notifications')
     sms_notifications = BooleanField('SMS Notifications')
-    notification_area = StringField('Notification Area', validators=[Optional(), Length(max=100)]) 
+    notification_area = StringField('Notification Area', validators=[Optional(), Length(max=100)])
+
+class LostFoundForm(FlaskForm):
+    item_type = SelectField('Item Type', choices=[
+        ('', 'Select Type'),
+        ('lost', 'Lost Item'),
+        ('found', 'Found Item')
+    ], validators=[DataRequired()])
+    
+    category = SelectField('Category', choices=[
+        ('', 'Select Category'),
+        ('electronics', 'Electronics'),
+        ('documents', 'Documents'),
+        ('accessories', 'Accessories'),
+        ('clothing', 'Clothing'),
+        ('other', 'Other')
+    ], validators=[DataRequired()])
+    
+    title = StringField('Title', validators=[DataRequired()])
+    description = TextAreaField('Description', validators=[DataRequired()])
+    location = StringField('Location', validators=[DataRequired()])
+    date_found = DateField('Date', validators=[DataRequired()])
+    image = FileField('Image', validators=[Optional()])
+    contact_name = StringField('Contact Name', validators=[DataRequired()])
+    contact_email = StringField('Contact Email', validators=[Optional(), Email()])
+    contact_phone = StringField('Contact Phone', validators=[DataRequired(), Length(min=10, max=15)])
+
+class MessageForm(FlaskForm):
+    receiver_id = IntegerField('Receiver ID', validators=[DataRequired()])
+    content = TextAreaField('Message', validators=[
+        DataRequired(message='Please enter a message'),
+        Length(min=1, max=1000, message='Message must be between 1 and 1000 characters')
+    ])
+    item_id = IntegerField('Item ID', validators=[Optional()])
+    submit = SubmitField('Send Message') 

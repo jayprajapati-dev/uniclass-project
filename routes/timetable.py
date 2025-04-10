@@ -5,6 +5,7 @@ from models import db, Timetable, TimeSlot, Subject, User, TimetableEntry, Class
 from datetime import datetime, time
 from utils.timetable_generator import TimetableGenerator
 from sqlalchemy import distinct
+from forms import TimetableForm
 
 timetable_bp = Blueprint('timetable', __name__)
 
@@ -257,6 +258,7 @@ def create_demo_data():
 
 @timetable_bp.route('/')
 def index():
+    form = TimetableForm()
     # Get filter parameters
     department = request.args.get('department', '')
     semester = request.args.get('semester', '')
@@ -314,7 +316,8 @@ def index():
                          departments=departments,
                          semesters=semesters,
                          selected_department=department,
-                         selected_semester=semester)
+                         selected_semester=semester,
+                         form=form)
 
 @timetable_bp.route('/<int:id>')
 def show(id):
@@ -482,13 +485,15 @@ def create_timetable():
     # Get full branch name
     full_branch_name = branch_names.get(branch, branch)
 
-    classroom = Classroom.query.filter_by(name=classroom_name).first()
+    classroom = Classroom.query.filter_by(room_number=classroom_name).first()
     if not classroom:
         # Create new classroom
         classroom = Classroom(
-            name=classroom_name,
+            room_number=classroom_name,
             location=f'Building {classroom_name[0]}',  # Assume first character is building
-            room_type='lecture',  # Default type
+            floor='1',  # Default floor
+            building=f'Building {classroom_name[0]}',
+            room_type='lecture_room',  # Default type
             department=full_branch_name
         )
         db.session.add(classroom)

@@ -2,66 +2,142 @@
 
 {% block title %}List Study Material{% endblock %}
 
+{% block head %}
+<style>
+.materials-header {
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    padding: 2rem 0;
+    color: white;
+    border-radius: 0 0 20px 20px;
+    margin-bottom: 2rem;
+}
+
+.materials-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.back-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    text-decoration: none;
+}
+
+.back-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+    transform: translateX(-3px);
+}
+
+.back-btn i {
+    font-size: 1.1rem;
+}
+
+.form-control, .form-select {
+    border: none;
+    border-radius: 0;
+}
+.form-control:focus, .form-select:focus {
+    box-shadow: none;
+    border-color: #ced4da;
+}
+.input-group {
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.input-group-text {
+    border: none;
+    background-color: #f8f9fa;
+}
+textarea.form-control {
+    resize: vertical;
+    min-height: 120px;
+}
+</style>
+{% endblock %}
+
 {% block content %}
+<div class="materials-header">
+    <div class="container">
+        <a href="{{ url_for('materials.index') }}" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+            Back to Materials
+        </a>
+    </div>
+</div>
+
 <div class="container py-4">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="mb-0">List Study Material</h4>
-                </div>
-                <div class="card-body">
-                    <form method="POST" enctype="multipart/form-data">
-                        {{ form.csrf_token }}
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="text-center mb-4">
+                <h1 class="display-5 fw-bold text-primary">List New Study Material</h1>
+                <p class="text-muted lead">Share your study materials with other students</p>
+            </div>
+
+            <!-- Form Card -->
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('materials.sell_material') }}" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        {{ form.hidden_tag() }}
                         
                         <div class="mb-3">
                             {{ form.title.label(class="form-label") }}
                             {{ form.title(class="form-control") }}
                             {% if form.title.errors %}
-                                {% for error in form.title.errors %}
-                                    <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.title.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
                             {% endif %}
                         </div>
 
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                {{ form.subject.label(class="form-label") }}
-                                {{ form.subject(class="form-control") }}
-                                {% if form.subject.errors %}
-                                    {% for error in form.subject.errors %}
-                                        <div class="text-danger">{{ error }}</div>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
                                 {{ form.material_type.label(class="form-label") }}
                                 {{ form.material_type(class="form-select") }}
                                 {% if form.material_type.errors %}
-                                    {% for error in form.material_type.errors %}
-                                        <div class="text-danger">{{ error }}</div>
-                                    {% endfor %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.material_type.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
                                 {% endif %}
                             </div>
-                        </div>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
                                 {{ form.branch.label(class="form-label") }}
                                 {{ form.branch(class="form-select") }}
                                 {% if form.branch.errors %}
-                                    {% for error in form.branch.errors %}
-                                        <div class="text-danger">{{ error }}</div>
-                                    {% endfor %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.branch.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
                                 {% endif %}
                             </div>
-                            <div class="col-md-6 mb-3">
+
+                            <div class="col-md-4 mb-3">
                                 {{ form.semester.label(class="form-label") }}
                                 {{ form.semester(class="form-select") }}
                                 {% if form.semester.errors %}
-                                    {% for error in form.semester.errors %}
-                                        <div class="text-danger">{{ error }}</div>
-                                    {% endfor %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.semester.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
                                 {% endif %}
                             </div>
                         </div>
@@ -71,18 +147,23 @@
                                 {{ form.price.label(class="form-label") }}
                                 {{ form.price(class="form-control") }}
                                 {% if form.price.errors %}
-                                    {% for error in form.price.errors %}
-                                        <div class="text-danger">{{ error }}</div>
-                                    {% endfor %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.price.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
                                 {% endif %}
                             </div>
+
                             <div class="col-md-6 mb-3">
                                 {{ form.condition.label(class="form-label") }}
                                 {{ form.condition(class="form-select") }}
                                 {% if form.condition.errors %}
-                                    {% for error in form.condition.errors %}
-                                        <div class="text-danger">{{ error }}</div>
-                                    {% endfor %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.condition.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
                                 {% endif %}
                             </div>
                         </div>
@@ -91,9 +172,11 @@
                             {{ form.description.label(class="form-label") }}
                             {{ form.description(class="form-control", rows=4) }}
                             {% if form.description.errors %}
-                                {% for error in form.description.errors %}
-                                    <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.description.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
                             {% endif %}
                         </div>
 
@@ -101,16 +184,18 @@
                             {{ form.image.label(class="form-label") }}
                             {{ form.image(class="form-control") }}
                             {% if form.image.errors %}
-                                {% for error in form.image.errors %}
-                                    <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.image.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
                             {% endif %}
-                            <small class="text-muted">Upload a clear image of the material (JPEG or PNG only)</small>
                         </div>
 
-                        <div class="d-flex justify-content-between">
-                            <a href="{{ url_for('materials.index') }}" class="btn btn-secondary">Cancel</a>
-                            {{ form.submit(class="btn btn-primary") }}
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary btn-lg px-5">
+                                <i class="fas fa-plus me-2"></i>List Material
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -118,4 +203,38 @@
         </div>
     </div>
 </div>
+
+<script>
+// Form validation
+(function () {
+    'use strict'
+    var forms = document.querySelectorAll('.needs-validation')
+    Array.prototype.slice.call(forms).forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+            }
+            form.classList.add('was-validated')
+        }, false)
+    })
+})()
+
+// Price validation for question papers
+document.addEventListener('DOMContentLoaded', function() {
+    const materialType = document.querySelector('select[name="material_type"]');
+    const priceInput = document.querySelector('input[name="price"]');
+    
+    materialType.addEventListener('change', function() {
+        if (this.value === 'question_papers') {
+            priceInput.value = '0';
+            priceInput.readOnly = true;
+            priceInput.classList.add('bg-light');
+        } else {
+            priceInput.readOnly = false;
+            priceInput.classList.remove('bg-light');
+        }
+    });
+});
+</script>
 {% endblock %} 

@@ -48,9 +48,11 @@
                         <thead>
                             <tr>
                                 <th>Time</th>
-                                {% for day in days %}
-                                <th>{{ day }}</th>
-                                {% endfor %}
+                                <th>Monday</th>
+                                <th>Tuesday</th>
+                                <th>Wednesday</th>
+                                <th>Thursday</th>
+                                <th>Friday</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -60,7 +62,7 @@
                                 {% if time_slots[i].type == 'recess' or time_slots[i].type == 'break' %}
                                     <td colspan="5" class="timetable-{{ time_slots[i].type }}">{{ time_slots[i].label }}</td>
                                 {% else %}
-                                    {% for day in days %}
+                                    {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] %}
                                     <td>
                                         {% if schedule[day][i] != '-' %}
                                             <div class="timetable-entry">

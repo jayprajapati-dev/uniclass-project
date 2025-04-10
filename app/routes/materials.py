@@ -115,23 +115,31 @@ def download(id):
 def delete(id):
     material = Material.query.get_or_404(id)
     
-    # Check if user has permission to delete
-    if current_user.id != material.uploaded_by_id and not current_user.is_admin:
-        flash('You do not have permission to delete this material.', 'error')
+    # Check if user is either the owner or an admin
+    if current_user.id != material.seller_id and not current_user.is_admin:
+        flash('You are not authorized to delete this material.', 'danger')
         return redirect(url_for('materials.index'))
     
     try:
-        # Delete file
-        if os.path.exists(material.file_path):
-            os.remove(material.file_path)
+        # Delete the material file if it exists
+        if material.file_path:
+            file_path = os.path.join(current_app.root_path, 'static', material.file_path)
+            if os.path.exists(file_path):
+                os.remove(file_path)
         
-        # Delete record
+        # Delete the material image if it exists
+        if material.image_path:
+            image_path = os.path.join(current_app.root_path, 'static', material.image_path)
+            if os.path.exists(image_path):
+                os.remove(image_path)
+        
+        # Delete the material from the database
         db.session.delete(material)
         db.session.commit()
         
-        flash('Material deleted successfully!', 'success')
+        flash('Material deleted successfully.', 'success')
+        return redirect(url_for('materials.index'))
     except Exception as e:
         db.session.rollback()
-        flash('Error deleting material.', 'error')
-    
-    return redirect(url_for('materials.index')) 
+        flash('An error occurred while deleting the material.', 'danger')
+        return redirect(url_for('materials.index')) 

@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Messages{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar with conversations -->
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">Conversations</h5>
+                </div>
+                <div class="list-group list-group-flush" style="max-height: 600px; overflow-y: auto;">
+                    {% for conversation in conversations %}
+                    <a href="{{ url_for('messages.conversation', user_id=conversation.other_user.id) }}" 
+                       class="list-group-item list-group-item-action {% if conversation.other_user.id == current_conversation_user_id %}active{% endif %}">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ conversation.other_user.username }}</h6>
+                            <small>{{ conversation.last_message.created_at.strftime('%H:%M') }}</small>
+                        </div>
+                        <p class="mb-1 text-truncate">{{ conversation.last_message.content }}</p>
+                        {% if not conversation.last_message.read and conversation.last_message.receiver_id == current_user.id %}
+                        <span class="badge bg-primary">New</span>
+                        {% endif %}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Main chat area -->
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        {% if current_conversation_user %}
+                        Conversation with {{ current_conversation_user.username }}
+                        {% else %}
+                        Select a conversation
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if current_conversation_user %}
+                    <div class="chat-messages" style="height: 400px; overflow-y: auto;" id="messageContainer">
+                        {% for message in messages %}
+                        <div class="mb-3 {% if message.sender_id == current_user.id %}text-end{% endif %}">
+                            <div class="d-inline-block p-2 rounded {% if message.sender_id == current_user.id %}bg-primary text-white{% else %}bg-light{% endif %}" 
+                                 style="max-width: 75%;">
+                                <p class="mb-1">{{ message.content }}</p>
+                                <small class="text-{% if message.sender_id == current_user.id %}light{% else %}muted{% endif %}">
+                                    {{ message.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                </small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <form method="POST" action="{% if item_type and item_id %}{{ url_for('messages.send_message', item_type=item_type, item_id=item_id, receiver_id=current_conversation_user.id) }}{% else %}{{ url_for('messages.send_direct_message', receiver_id=current_conversation_user.id) }}{% endif %}" class="mt-3">
+                        {{ form.csrf_token }}
+                        <div class="input-group">
+                            {{ form.content(class="form-control", placeholder="Type your message...", rows="2") }}
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                        {% if form.content.errors %}
+                        <div class="text-danger mt-2">
+                            {% for error in form.content.errors %}
+                            <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </form>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Select a conversation to start messaging</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const messageContainer = document.getElementById('messageContainer');
+    if (messageContainer) {
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+    }
+});
+</script>
+{% endblock %}
+
+<style>
+.chat-messages {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.5rem;
+}
+
+.list-group-item {
+    transition: all 0.2s ease;
+}
+
+.list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+.list-group-item.active {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.badge {
+    font-size: 0.75rem;
+}
+</style>
+{% endblock %} 

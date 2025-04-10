@@ -15,11 +15,10 @@ from routes.student import student_bp
 from routes.teacher import teacher_bp
 from routes.timetable import timetable_bp as timetable_bp
 from routes.main import main_bp
-from routes.messages import messages_bp
+from routes.messages import messages
 from routes.feedback import feedback_bp
 from routes.verification import verification_bp
 from routes.reports import reports_bp
-from routes.study_materials import study_materials_bp
 from routes.classroom_finder import classroom_finder_bp
 from routes.notifications import notifications_bp, mail
 import os
@@ -31,10 +30,10 @@ def create_app():
     
     # Configuration
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', '9ae69405bbc6d4d2d93ae932624c4310dfaa3bb8ac100a1427da98ef0ff95c6a')
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'  # Use in-memory SQLite for testing
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///uniclass.db'  # Use persistent SQLite database
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
-    app.config['SESSION_COOKIE_SECURE'] = True
+    app.config['SESSION_COOKIE_SECURE'] = False  # Set to False for development
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
     app.config['WTF_CSRF_ENABLED'] = True
@@ -69,11 +68,10 @@ def create_app():
     app.register_blueprint(student_bp, url_prefix='/student')
     app.register_blueprint(teacher_bp, url_prefix='/teacher')
     app.register_blueprint(timetable_bp, url_prefix='/timetable')
-    app.register_blueprint(messages_bp, url_prefix='/messages')
+    app.register_blueprint(messages)  # Remove url_prefix as it's already defined in the blueprint
     app.register_blueprint(feedback_bp, url_prefix='/feedback')
     app.register_blueprint(verification_bp, url_prefix='/verification')
     app.register_blueprint(reports_bp, url_prefix='/reports')
-    app.register_blueprint(study_materials_bp, url_prefix='/study-materials')
     app.register_blueprint(classroom_finder_bp, url_prefix='/classroom-finder')
     app.register_blueprint(notifications_bp, url_prefix='/notifications')
     
@@ -103,6 +101,14 @@ def create_app():
     @app.route('/clear-onesignal')
     def clear_onesignal():
         return render_template('clear_onesignal.html')
+    
+    # Create database tables and ensure they exist
+    with app.app_context():
+        try:
+            db.create_all()
+            print("Database tables created successfully")
+        except Exception as e:
+            print(f"Error creating database tables: {e}")
     
     return app
 

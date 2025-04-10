@@ -1,0 +1,387 @@
+{% extends "base.html" %}
+
+{% block title %}Messages{% if message_type %} - {{ message_type|title }}{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Chat List -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-comments me-2"></i>
+                        Messages{% if message_type %} - {{ message_type|title }}{% endif %}
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for conv in conversations %}
+                        <a href="{{ url_for('messages.chat', user_id=conv.user.id) }}" 
+                           class="list-group-item list-group-item-action {% if conv.user.id == other_user.id %}active{% endif %}">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ conv.user.name }}</h6>
+                                    <p class="mb-1 text-truncate">{{ conv.last_message.content }}</p>
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-muted">{{ conv.last_message.created_at.strftime('%I:%M %p') }}</small>
+                                    {% if conv.unread_count > 0 %}
+                                    <span class="badge bg-primary rounded-pill ms-2">{{ conv.unread_count }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="col-md-8">
+            {% if other_user %}
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user me-2"></i>
+                        Chat with {{ other_user.name }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="chatMessages" class="chat-messages mb-3" style="height: 400px; overflow-y: auto;">
+                        {% set current_date = None %}
+                        {% for message in messages %}
+                            {% set message_date = message.created_at.date() %}
+                            {% if message_date != current_date %}
+                                {% set current_date = message_date %}
+                                <div class="date-divider text-center my-3">
+                                    <span class="badge bg-secondary">{{ message.created_at.strftime('%B %d, %Y') }}</span>
+                                </div>
+                            {% endif %}
+                            <div class="message {% if message.sender_id == current_user.id %}sent{% else %}received{% endif %}">
+                                <div class="message-content">{{ message.content }}</div>
+                                <div class="message-time">{{ message.created_at.strftime('%I:%M %p') }}</div>
+                                {% if message.sender_id == current_user.id %}
+                                <div class="message-status">
+                                    {% if message.read %}
+                                    <i class="fas fa-check-double text-primary"></i>
+                                    {% else %}
+                                    <i class="fas fa-check"></i>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <form id="messageForm" class="chat-input">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="input-group">
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="messageInput" 
+                                   placeholder="Type your message..."
+                                   autocomplete="off">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-comments fa-4x text-muted mb-3"></i>
+                    <h5>Select a conversation</h5>
+                    <p class="text-muted">Choose a conversation from the list to start chatting</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.chat-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.message {
+    max-width: 70%;
+    padding: 0.75rem 1rem;
+    border-radius: 1rem;
+    position: relative;
+    word-wrap: break-word;
+}
+
+.message.sent {
+    align-self: flex-end;
+    background-color: #007bff;
+    color: white;
+    border-bottom-right-radius: 0.25rem;
+}
+
+.message.received {
+    align-self: flex-start;
+    background-color: #f1f1f1;
+    color: black;
+    border-bottom-left-radius: 0.25rem;
+}
+
+.message-time {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    margin-top: 0.25rem;
+    text-align: right;
+}
+
+.message-status {
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+}
+
+.message-status i {
+    font-size: 0.875rem;
+}
+
+.date-divider {
+    position: relative;
+    text-align: center;
+    margin: 1rem 0;
+}
+
+.date-divider::before,
+.date-divider::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 45%;
+    height: 1px;
+    background-color: #dee2e6;
+}
+
+.date-divider::before {
+    left: 0;
+}
+
+.date-divider::after {
+    right: 0;
+}
+
+.date-divider .badge {
+    position: relative;
+    z-index: 1;
+    padding: 0.5rem 1rem;
+    background-color: #6c757d;
+    color: white;
+}
+
+.alert {
+    margin-bottom: 1rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.25rem;
+}
+
+.alert-danger {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
+
+.alert-dismissible {
+    padding-right: 4rem;
+}
+
+.alert-dismissible .btn-close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 0.75rem 1.25rem;
+    color: inherit;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chatMessages = document.getElementById('chatMessages');
+    const messageForm = document.getElementById('messageForm');
+    const messageInput = document.getElementById('messageInput');
+    const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+    let lastMessageTime = new Date().toISOString();
+    
+    if (messageForm && chatMessages) {
+        // Initial scroll to bottom
+        scrollToBottom();
+        
+        // Handle form submission
+        messageForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const content = messageInput.value.trim();
+            if (content) {
+                sendMessage(content);
+                messageInput.value = '';
+            }
+        });
+        
+        // Start polling for new messages
+        startPolling();
+        
+        function sendMessage(content) {
+            // Create and append the message immediately
+            const tempId = 'msg_' + new Date().getTime();
+            const messageDiv = createMessageDiv({
+                id: tempId,
+                content: content,
+                sender_id: {{ current_user.id }},
+                created_at: new Date().toISOString(),
+                read: false
+            });
+            chatMessages.appendChild(messageDiv);
+            scrollToBottom();
+            
+            // Send the message to the server
+            fetch('/messages/send_message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    receiver_id: {{ other_user.id if other_user else 0 }},
+                    content: content
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Update the message with the server response
+                    const tempMessage = document.getElementById(tempId);
+                    if (tempMessage) {
+                        tempMessage.id = 'msg_' + data.message.id;
+                        updateMessageStatus(tempMessage, data.message);
+                    }
+                    lastMessageTime = data.message.created_at;
+                } else {
+                    // Show error message and remove the failed message
+                    showError(data.error || 'Failed to send message');
+                    const tempMessage = document.getElementById(tempId);
+                    if (tempMessage) {
+                        tempMessage.remove();
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error sending message:', error);
+                showError('Failed to send message. Please try again.');
+                const tempMessage = document.getElementById(tempId);
+                if (tempMessage) {
+                    tempMessage.remove();
+                }
+            });
+        }
+        
+        function createMessageDiv(msg) {
+            const messageDiv = document.createElement('div');
+            messageDiv.id = msg.id ? 'msg_' + msg.id : msg.id;
+            messageDiv.className = `message ${msg.sender_id === {{ current_user.id }} ? 'sent' : 'received'}`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = msg.content;
+            
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'message-time';
+            const messageDate = new Date(msg.created_at);
+            timeDiv.textContent = messageDate.toLocaleTimeString('en-US', { 
+                hour: 'numeric', 
+                minute: '2-digit', 
+                hour12: true 
+            });
+            
+            messageDiv.appendChild(contentDiv);
+            messageDiv.appendChild(timeDiv);
+            
+            if (msg.sender_id === {{ current_user.id }}) {
+                const statusDiv = document.createElement('div');
+                statusDiv.className = 'message-status';
+                const icon = document.createElement('i');
+                icon.className = msg.read ? 'fas fa-check-double text-primary' : 'fas fa-check';
+                statusDiv.appendChild(icon);
+                messageDiv.appendChild(statusDiv);
+            }
+            
+            return messageDiv;
+        }
+        
+        function updateMessageStatus(messageDiv, msg) {
+            const statusDiv = messageDiv.querySelector('.message-status');
+            if (statusDiv) {
+                const icon = statusDiv.querySelector('i');
+                if (icon) {
+                    icon.className = msg.read ? 'fas fa-check-double text-primary' : 'fas fa-check';
+                }
+            }
+        }
+        
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'alert alert-danger alert-dismissible fade show';
+            errorDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            messageForm.parentNode.insertBefore(errorDiv, messageForm);
+            
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
+        }
+        
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function startPolling() {
+            setInterval(() => {
+                if (!document.hidden) {
+                    fetch(`/messages/chat/{{ other_user.id if other_user else 0 }}/updates?since=${lastMessageTime}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.messages && data.messages.length > 0) {
+                                data.messages.forEach(msg => {
+                                    if (!document.getElementById('msg_' + msg.id)) {
+                                        const messageDiv = createMessageDiv(msg);
+                                        chatMessages.appendChild(messageDiv);
+                                    }
+                                });
+                                lastMessageTime = data.messages[data.messages.length - 1].created_at;
+                                scrollToBottom();
+                            }
+                            // Update read status of existing messages
+                            if (data.read_messages) {
+                                data.read_messages.forEach(msgId => {
+                                    const messageDiv = document.getElementById('msg_' + msgId);
+                                    if (messageDiv) {
+                                        updateMessageStatus(messageDiv, { read: true });
+                                    }
+                                });
+                            }
+                        })
+                        .catch(error => console.error('Error polling messages:', error));
+                }
+            }, 3000); // Poll every 3 seconds
+        }
+    }
+});
+</script>
+{% endblock %} 

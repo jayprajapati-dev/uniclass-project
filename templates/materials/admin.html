@@ -31,7 +31,7 @@
                         {% for material in pending_materials %}
                         <tr>
                             <td>
-                                <a href="{{ url_for('materials.view', id=material.id) }}" target="_blank">
+                                <a href="{{ url_for('materials.view_material', id=material.id) }}" target="_blank">
                                     {{ material.title }}
                                 </a>
                             </td>
@@ -90,7 +90,7 @@
                         {% set latest_report = material.reports|selectattr('status', 'equalto', 'pending')|list|first %}
                         <tr>
                             <td>
-                                <a href="{{ url_for('materials.view', id=material.id) }}" target="_blank">
+                                <a href="{{ url_for('materials.view_material', id=material.id) }}" target="_blank">
                                     {{ material.title }}
                                 </a>
                             </td>

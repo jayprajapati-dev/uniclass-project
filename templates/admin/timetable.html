@@ -57,7 +57,6 @@
                         <option value="Wednesday" {% if request.args.get('day') == 'Wednesday' %}selected{% endif %}>Wednesday</option>
                         <option value="Thursday" {% if request.args.get('day') == 'Thursday' %}selected{% endif %}>Thursday</option>
                         <option value="Friday" {% if request.args.get('day') == 'Friday' %}selected{% endif %}>Friday</option>
-                        <option value="Saturday" {% if request.args.get('day') == 'Saturday' %}selected{% endif %}>Saturday</option>
                     </select>
                 </div>
                 <div class="col-md-3 d-flex align-items-end">
@@ -118,7 +117,6 @@
                                                     <option value="Wednesday" {% if entry.day == 'Wednesday' %}selected{% endif %}>Wednesday</option>
                                                     <option value="Thursday" {% if entry.day == 'Thursday' %}selected{% endif %}>Thursday</option>
                                                     <option value="Friday" {% if entry.day == 'Friday' %}selected{% endif %}>Friday</option>
-                                                    <option value="Saturday" {% if entry.day == 'Saturday' %}selected{% endif %}>Saturday</option>
                                                 </select>
                                             </div>
                                             <div class="mb-3">
@@ -208,7 +206,6 @@
                                 <option value="Wednesday">Wednesday</option>
                                 <option value="Thursday">Thursday</option>
                                 <option value="Friday">Friday</option>
-                                <option value="Saturday">Saturday</option>
                             </select>
                         </div>
                         <div class="mb-3">

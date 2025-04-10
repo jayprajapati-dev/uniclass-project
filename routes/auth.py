@@ -79,7 +79,8 @@ def register():
         
         # Create new user
         user = User(
-            username=form.name.data,  # Using name field as username
+            username=form.name.data.lower().replace(' ', '_'),  # Create username from name
+            name=form.name.data,  # Set the name field
             email=form.email.data,
             mobile=form.mobile.data,
             password_hash=generate_password_hash(form.password.data),

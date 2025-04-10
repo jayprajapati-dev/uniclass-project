@@ -15,48 +15,35 @@
                 <div class="card-body">
                     <form action="{{ url_for('timetable.create_timetable') }}" method="POST">
                         {{ form.csrf_token }}
-                        <div class="row">
+                        <div class="row g-3">
                             <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="branch" class="form-label">Department</label>
-                                    <select class="form-select" id="branch" name="branch" required>
-                                        <option value="">Select Department</option>
-                                        <option value="Civil Engineering">Civil Engineering</option>
-                                        <option value="Information Technology">Information Technology</option>
-                                        <option value="Electronics & Communication Engineering">Electronics & Communication Engineering</option>
-                                        <option value="Electrical Engineering">Electrical Engineering</option>
-                                        <option value="Mechanical Engineering">Mechanical Engineering</option>
-                                        <option value="Information and Communication Technology">Information and Communication Technology</option>
-                                    </select>
+                                <div class="form-floating">
+                                    {{ form.branch(class="form-select", id="branch") }}
+                                    <label for="branch">Department</label>
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="semester" class="form-label">Semester</label>
-                                    <select class="form-select" id="semester" name="semester" required>
-                                        <option value="">Select Semester</option>
-                                        {% for sem in semesters %}
-                                        <option value="{{ sem }}">Semester {{ sem }}</option>
-                                        {% endfor %}
-                                    </select>
+                                <div class="form-floating">
+                                    {{ form.semester(class="form-select", id="semester") }}
+                                    <label for="semester">Semester</label>
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="classroom" class="form-label">Main Classroom</label>
-                                    <input type="text" class="form-control" id="classroom" name="classroom" placeholder="Enter classroom (e.g., A101)" required pattern="[A-Za-z0-9-_]+" title="Enter classroom ID using letters, numbers, hyphens or underscores">
+                                <div class="form-floating">
+                                    {{ form.classroom(class="form-control", id="classroom", placeholder="Classroom") }}
+                                    <label for="classroom">Classroom</label>
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="start_date" class="form-label">Start Date (W.E.F.)</label>
-                                    <input type="date" class="form-control" id="start_date" name="start_date" required>
+                                <div class="form-floating">
+                                    {{ form.start_date(class="form-control", id="start_date", type="date") }}
+                                    <label for="start_date">Start Date</label>
                                 </div>
                             </div>
                         </div>
                         <div class="row mt-3">
                             <div class="col-12">
-                                <button type="submit" class="btn btn-primary">Create Empty Timetable</button>
+                                {{ form.submit(class="btn btn-primary") }}
                             </div>
                         </div>
                     </form>
@@ -151,14 +138,13 @@
                                     <th>Wednesday</th>
                                     <th>Thursday</th>
                                     <th>Friday</th>
-                                    <th>Saturday</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for time_slot, days in timetable_entries.items() %}
                                 <tr>
                                     <td class="time-slot">{{ time_slot }}</td>
-                                    {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] %}
+                                    {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] %}
                                     <td>
                                         {% for entry in days[day] %}
                                         <div class="timetable-entry">

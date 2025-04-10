@@ -47,6 +47,38 @@
                     </table>
                 </div>
             </div>
+
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">{{ material.title }}</h5>
+                    <p class="card-text">{{ material.description }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted">Price: ₹{{ material.price }}</span>
+                            <span class="text-muted ms-3">Condition: {{ material.condition }}</span>
+                        </div>
+                        {% if material.seller_id != current_user.id %}
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#messageModal">
+                            <i class="fas fa-comments"></i> Chat with Seller
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-footer">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted">Posted by {{ material.seller.name }}</span>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#messageModal">
+                            <i class="fas fa-comments me-2"></i>
+                            Chat with Seller
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Contact Seller & Actions -->
@@ -90,15 +122,13 @@
             </div>
             {% endif %}
 
-            {% if current_user.is_authenticated and current_user.id == material.seller_id %}
+            {% if current_user.is_authenticated and (current_user.id == material.seller_id or current_user.is_admin) %}
             <div class="card">
                 <div class="card-header">
                     <h5 class="mb-0">Manage Listing</h5>
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="{{ url_for('materials.edit_material', id=material.id) }}" 
-                           class="btn btn-primary">Edit Listing</a>
                         <button type="button" 
                                 class="btn btn-danger" 
                                 data-bs-toggle="modal" 
@@ -114,7 +144,7 @@
 </div>
 
 <!-- Delete Modal -->
-{% if current_user.is_authenticated and current_user.id == material.seller_id %}
+{% if current_user.is_authenticated and (current_user.id == material.seller_id or current_user.is_admin) %}
 <div class="modal fade" id="deleteModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -136,4 +166,261 @@
     </div>
 </div>
 {% endif %}
+
+<!-- Message Modal -->
+<div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="messageModalLabel">
+                    <i class="fas fa-comments me-2"></i>
+                    Chat with {{ material.seller.name }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="chatMessages" class="chat-messages mb-3" style="height: 300px; overflow-y: auto;">
+                    <!-- Messages will be loaded here -->
+                </div>
+                <form id="messageForm" class="chat-input">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="input-group">
+                        <input type="text" 
+                               class="form-control" 
+                               id="messageInput" 
+                               placeholder="Type your message..."
+                               autocomplete="off">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.chat-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.message {
+    max-width: 70%;
+    padding: 0.75rem 1rem;
+    border-radius: 1rem;
+    position: relative;
+    word-wrap: break-word;
+}
+
+.message.sent {
+    align-self: flex-end;
+    background-color: #007bff;
+    color: white;
+    border-bottom-right-radius: 0.25rem;
+}
+
+.message.received {
+    align-self: flex-start;
+    background-color: #f1f1f1;
+    color: black;
+    border-bottom-left-radius: 0.25rem;
+}
+
+.message-time {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    margin-top: 0.25rem;
+    text-align: right;
+}
+
+.message-status {
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+}
+
+.message-status i {
+    font-size: 0.875rem;
+}
+
+.typing-indicator {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background-color: #f1f1f1;
+    border-radius: 1rem;
+    margin-left: 1rem;
+    max-width: fit-content;
+}
+
+.typing-indicator span {
+    height: 0.5rem;
+    width: 0.5rem;
+    background-color: #6c757d;
+    border-radius: 50%;
+    display: inline-block;
+    margin: 0 0.25rem;
+    animation: typing 1s infinite;
+}
+
+.typing-indicator span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typing {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-0.25rem);
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const messageModal = document.getElementById('messageModal');
+    const chatMessages = document.getElementById('chatMessages');
+    const messageForm = document.getElementById('messageForm');
+    const messageInput = document.getElementById('messageInput');
+    let lastMessageId = 0;
+    
+    // Load messages when modal opens
+    messageModal.addEventListener('show.bs.modal', function() {
+        loadMessages();
+        startPolling();
+    });
+    
+    messageModal.addEventListener('hidden.bs.modal', function() {
+        stopPolling();
+    });
+    
+    // Handle form submission
+    messageForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const content = messageInput.value.trim();
+        if (content) {
+            sendMessage(content);
+            messageInput.value = '';
+        }
+    });
+    
+    function loadMessages() {
+        fetch(`/messages/chat/{{ material.seller_id }}`)
+            .then(response => response.json())
+            .then(messages => {
+                if (messages.length > 0) {
+                    lastMessageId = messages[messages.length - 1].id;
+                }
+                chatMessages.innerHTML = '';
+                messages.forEach(msg => {
+                    appendMessage(msg);
+                });
+                scrollToBottom();
+            });
+    }
+    
+    function sendMessage(content) {
+        const messageDiv = createMessageDiv({
+            content: content,
+            sender_id: {{ current_user.id }},
+            created_at: new Date().toISOString(),
+            read: false
+        }, true);
+        chatMessages.appendChild(messageDiv);
+        scrollToBottom();
+        
+        fetch('/messages/send_message', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                receiver_id: {{ material.seller_id }},
+                content: content
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateMessageStatus(messageDiv, data.message);
+            }
+        });
+    }
+    
+    function createMessageDiv(msg, isSending = false) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${msg.sender_id === {{ current_user.id }} ? 'sent' : 'received'}`;
+        messageDiv.dataset.messageId = msg.id;
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.textContent = msg.content;
+        
+        const timeDiv = document.createElement('div');
+        timeDiv.className = 'message-time';
+        timeDiv.textContent = new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        messageDiv.appendChild(contentDiv);
+        messageDiv.appendChild(timeDiv);
+        
+        if (isSending) {
+            const statusDiv = document.createElement('div');
+            statusDiv.className = 'message-status';
+            statusDiv.innerHTML = '<i class="fas fa-clock"></i>';
+            messageDiv.appendChild(statusDiv);
+        }
+        
+        return messageDiv;
+    }
+    
+    function updateMessageStatus(messageDiv, msg) {
+        const statusDiv = messageDiv.querySelector('.message-status');
+        if (statusDiv) {
+            statusDiv.innerHTML = msg.read ? 
+                '<i class="fas fa-check-double text-primary"></i>' : 
+                '<i class="fas fa-check"></i>';
+        }
+    }
+    
+    function scrollToBottom() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    let pollingInterval;
+    function startPolling() {
+        pollingInterval = setInterval(() => {
+            fetch(`/messages/chat/{{ material.seller_id }}?last_id=${lastMessageId}`)
+                .then(response => response.json())
+                .then(messages => {
+                    if (messages.length > 0) {
+                        lastMessageId = messages[messages.length - 1].id;
+                        messages.forEach(msg => {
+                            if (!document.querySelector(`[data-message-id="${msg.id}"]`)) {
+                                appendMessage(msg);
+                            }
+                        });
+                        scrollToBottom();
+                    }
+                });
+        }, 2000);
+    }
+    
+    function stopPolling() {
+        clearInterval(pollingInterval);
+    }
+    
+    function appendMessage(msg) {
+        const messageDiv = createMessageDiv(msg);
+        chatMessages.appendChild(messageDiv);
+    }
+});
+</script>
 {% endblock %} 

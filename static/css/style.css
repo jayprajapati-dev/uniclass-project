@@ -567,3 +567,100 @@ footer .list-unstyled li i {
         display: block !important;
     }
 }
+
+/* Quick Actions */
+.quick-actions {
+    background: var(--card-bg);
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px var(--shadow-color);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.quick-actions .card-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: var(--btn-text);
+    padding: 1.25rem;
+    border-bottom: none;
+}
+
+.quick-actions .card-header h5 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.quick-actions .list-group {
+    padding: 1rem;
+}
+
+.quick-actions .list-group-item {
+    border: none;
+    border-radius: 0.75rem;
+    margin-bottom: 0.75rem;
+    padding: 1rem;
+    transition: all 0.3s ease;
+    background: var(--hover-bg);
+    display: flex;
+    align-items: center;
+    color: var(--text-color);
+}
+
+.quick-actions .list-group-item:last-child {
+    margin-bottom: 0;
+}
+
+.quick-actions .list-group-item:hover {
+    transform: translateX(5px);
+    background: var(--primary-color);
+    color: var(--btn-text);
+}
+
+.quick-actions .list-group-item i {
+    margin-right: 1rem;
+    font-size: 1.1rem;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.quick-actions .list-group-item:hover i {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+    .quick-actions {
+        margin-bottom: 1.5rem;
+    }
+    
+    .quick-actions .list-group-item {
+        padding: 0.75rem;
+    }
+    
+    .quick-actions .list-group-item i {
+        font-size: 1rem;
+        width: 20px;
+        height: 20px;
+    }
+}
+
+@media (max-width: 576px) {
+    .quick-actions .card-header {
+        padding: 1rem;
+    }
+    
+    .quick-actions .card-header h5 {
+        font-size: 1.1rem;
+    }
+    
+    .quick-actions .list-group {
+        padding: 0.75rem;
+    }
+}

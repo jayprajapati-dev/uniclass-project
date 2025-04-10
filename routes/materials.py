@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app, jsonify
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
-from models import db, StudyMaterial, MaterialPurchase, MaterialReport, Message
+from models import db, StudyMaterial, MaterialPurchase, MaterialReport, Message, User
 from forms import StudyMaterialForm, MaterialSearchForm, MaterialReportForm
 from flask_wtf import FlaskForm
 import os
@@ -15,77 +15,163 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @materials_bp.route('/')
-def index():
-    form = MaterialSearchForm()
-    query = StudyMaterial.query.filter_by(status='approved')
-
-    if form.validate_on_submit():
-        if form.search_query.data:
-            search = f"%{form.search_query.data}%"
-            query = query.filter(or_(
-                StudyMaterial.title.ilike(search),
-                StudyMaterial.description.ilike(search),
-                StudyMaterial.subject.ilike(search)
-            ))
-        
-        if form.material_type.data:
-            query = query.filter_by(material_type=form.material_type.data)
-        if form.branch.data:
-            query = query.filter_by(branch=form.branch.data)
-        if form.semester.data:
-            query = query.filter_by(semester=form.semester.data)
-        if form.condition.data:
-            query = query.filter_by(condition=form.condition.data)
-        if form.min_price.data is not None:
-            query = query.filter(StudyMaterial.price >= form.min_price.data)
-        if form.max_price.data is not None:
-            query = query.filter(StudyMaterial.price <= form.max_price.data)
-
-    materials = query.order_by(StudyMaterial.created_at.desc()).all()
-    return render_template('materials/index.html', materials=materials, form=form)
-
-@materials_bp.route('/list', methods=['GET', 'POST'])
 @login_required
-def list_material():
+def index():
+    """Display all study materials with filters"""
+    form = MaterialSearchForm()
+    page = request.args.get('page', 1, type=int)
+    search_query = request.args.get('search_query', '')
+    material_type = request.args.get('material_type', '')
+    branch = request.args.get('branch', '')
+    semester = request.args.get('semester', '')
+    condition = request.args.get('condition', '')
+    sort_by = request.args.get('sort_by', '')
+    
+    # Build query
+    query = StudyMaterial.query
+    
+    # Apply filters
+    if search_query:
+        query = query.filter(
+            (StudyMaterial.title.ilike(f'%{search_query}%')) |
+            (StudyMaterial.description.ilike(f'%{search_query}%'))
+        )
+    if material_type:
+        query = query.filter_by(material_type=material_type)
+    if branch:
+        query = query.filter_by(branch=branch)
+    if semester:
+        query = query.filter_by(semester=semester)
+    if condition:
+        query = query.filter_by(condition=condition)
+    
+    # Apply sorting
+    if sort_by == 'price_asc':
+        query = query.order_by(StudyMaterial.price.asc())
+    elif sort_by == 'price_desc':
+        query = query.order_by(StudyMaterial.price.desc())
+    elif sort_by == 'date_asc':
+        query = query.order_by(StudyMaterial.created_at.asc())
+    else:  # Default to newest first
+        query = query.order_by(StudyMaterial.created_at.desc())
+    
+    # Paginate results
+    materials = query.paginate(page=page, per_page=12, error_out=False)
+    
+    # Get unread message count for Study Materials
+    unread_count = Message.query.filter_by(
+        receiver_id=current_user.id,
+        message_type='material',
+        read=False
+    ).count()
+    
+    return render_template('materials/index.html',
+                         materials=materials,
+                         form=form,
+                         search_query=search_query,
+                         material_type=material_type,
+                         branch=branch,
+                         semester=semester,
+                         condition=condition,
+                         sort_by=sort_by,
+                         unread_count=unread_count)
+
+@materials_bp.route('/sell', methods=['GET', 'POST'])
+@login_required
+def sell_material():
     form = StudyMaterialForm()
     if form.validate_on_submit():
-        image_path = None
-        if form.image.data:
-            file = form.image.data
-            if allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], 'materials', filename)
-                file.save(filepath)
-                image_path = f'materials/{filename}'
-            else:
-                flash('Invalid file type. Please upload a JPG or PNG image.', 'danger')
-                return render_template('materials/list.html', form=form)
+        try:
+            # Handle file upload
+            image_filename = None
+            if form.image.data:
+                image = form.image.data
+                filename = secure_filename(image.filename)
+                image_filename = f"uploads/materials/{current_user.id}_{filename}"
+                image_path = os.path.join(current_app.static_folder, image_filename)
+                os.makedirs(os.path.dirname(image_path), exist_ok=True)
+                image.save(image_path)
 
-        material = StudyMaterial(
-            title=form.title.data,
-            subject=form.subject.data,
-            material_type=form.material_type.data,
-            branch=form.branch.data,
-            semester=form.semester.data,
-            price=form.price.data,
-            condition=form.condition.data,
-            description=form.description.data,
-            image_path=image_path,
-            seller_id=current_user.id
-        )
-        db.session.add(material)
-        db.session.commit()
+            # Create new study material
+            material = StudyMaterial(
+                title=form.title.data,
+                subject=form.subject.data,
+                material_type=form.material_type.data,
+                branch=form.branch.data,
+                semester=form.semester.data,
+                description=form.description.data,
+                price=form.price.data,
+                condition=form.condition.data,
+                seller_id=current_user.id,
+                image_path=image_filename,
+                status='available'
+            )
+            
+            db.session.add(material)
+            db.session.commit()
+            
+            flash('Your study material has been listed for sale!', 'success')
+            return redirect(url_for('materials.index'))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'An error occurred: {str(e)}', 'danger')
+    
+    return render_template('materials/create.html', form=form)
 
-        flash('Your material has been listed and is pending approval.', 'success')
-        return redirect(url_for('materials.index'))
+@materials_bp.route('/my-materials')
+@login_required
+def my_materials():
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    
+    materials = StudyMaterial.query.filter_by(seller_id=current_user.id)\
+        .order_by(StudyMaterial.created_at.desc())\
+        .paginate(page=page, per_page=per_page, error_out=False)
+    
+    return render_template('materials/list.html', materials=materials)
 
-    return render_template('materials/list.html', form=form)
-
-@materials_bp.route('/<int:id>')
-def view(id):
+@materials_bp.route('/view/<int:id>')
+def view_material(id):
     material = StudyMaterial.query.get_or_404(id)
     report_form = MaterialReportForm()
     return render_template('materials/view.html', material=material, report_form=report_form)
+
+@materials_bp.route('/buy/<int:id>', methods=['POST'])
+@login_required
+def buy_material(id):
+    material = StudyMaterial.query.get_or_404(id)
+    
+    if material.seller_id == current_user.id:
+        flash('You cannot buy your own material!', 'danger')
+        return redirect(url_for('materials.view_material', id=id))
+    
+    if material.status != 'available':
+        flash('This material is no longer available!', 'danger')
+        return redirect(url_for('materials.view_material', id=id))
+    
+    try:
+        # Create purchase record
+        purchase = MaterialPurchase(
+            material_id=material.id,
+            buyer_id=current_user.id,
+            seller_id=material.seller_id,
+            price=material.price
+        )
+        
+        # Update material status
+        material.status = 'sold'
+        
+        db.session.add(purchase)
+        db.session.commit()
+        
+        flash('Purchase successful!', 'success')
+        return redirect(url_for('materials.view_material', id=id))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'An error occurred: {str(e)}', 'danger')
+        return redirect(url_for('materials.view_material', id=id))
 
 @materials_bp.route('/<int:id>/contact', methods=['POST'])
 @login_required
@@ -93,7 +179,7 @@ def contact_seller(id):
     material = StudyMaterial.query.get_or_404(id)
     if material.seller_id == current_user.id:
         flash('You cannot contact yourself.', 'danger')
-        return redirect(url_for('materials.view', id=id))
+        return redirect(url_for('materials.view_material', id=id))
 
     message = Message(
         sender_id=current_user.id,
@@ -105,7 +191,7 @@ def contact_seller(id):
     db.session.commit()
 
     flash('Message sent to seller.', 'success')
-    return redirect(url_for('materials.view', id=id))
+    return redirect(url_for('materials.view_material', id=id))
 
 @materials_bp.route('/<int:id>/report', methods=['POST'])
 @login_required
@@ -125,7 +211,36 @@ def report_material(id):
         
         flash('Thank you for reporting. Our team will review it.', 'success')
     
-    return redirect(url_for('materials.view', id=id))
+    return redirect(url_for('materials.view_material', id=id))
+
+@materials_bp.route('/<int:id>/delete', methods=['POST'])
+@login_required
+def delete_material(id):
+    material = StudyMaterial.query.get_or_404(id)
+    
+    # Check if the current user is the seller
+    if current_user.id != material.seller_id:
+        flash('You are not authorized to delete this material.', 'danger')
+        return redirect(url_for('materials.view_material', id=id))
+    
+    try:
+        # Delete the material image if it exists
+        if material.image_path:
+            image_path = os.path.join(current_app.static_folder, material.image_path)
+            if os.path.exists(image_path):
+                os.remove(image_path)
+        
+        # Delete the material
+        db.session.delete(material)
+        db.session.commit()
+        
+        flash('Material deleted successfully.', 'success')
+        return redirect(url_for('materials.index'))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'An error occurred while deleting the material: {str(e)}', 'danger')
+        return redirect(url_for('materials.view_material', id=id))
 
 # Admin routes
 @materials_bp.route('/admin')
@@ -192,44 +307,4 @@ def resolve_report(id):
     db.session.commit()
     
     flash('Report resolved.', 'success')
-    return redirect(url_for('materials.admin'))
-
-@materials_bp.route('/<int:id>/purchase', methods=['POST'])
-@login_required
-def purchase(id):
-    try:
-        material = StudyMaterial.query.get_or_404(id)
-        
-        if material.seller_id == current_user.id:
-            return jsonify({
-                'success': False,
-                'message': 'You cannot purchase your own material'
-            }), 400
-        
-        if material.status != 'approved':
-            return jsonify({
-                'success': False,
-                'message': 'This material is not available for purchase'
-            }), 400
-        
-        purchase = MaterialPurchase(
-            material_id=id,
-            buyer_id=current_user.id,
-            seller_id=material.seller_id,
-            price=material.price
-        )
-        
-        material.status = 'sold'
-        db.session.add(purchase)
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Purchase request submitted successfully'
-        })
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({
-            'success': False,
-            'message': f'Error processing purchase: {str(e)}'
-        }), 400 
+    return redirect(url_for('materials.admin')) 

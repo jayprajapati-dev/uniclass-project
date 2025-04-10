@@ -45,26 +45,26 @@
     <!-- Main Actions -->
     <div class="row mb-4">
         <div class="col-md-6">
-            <div class="card">
+            <div class="card quick-actions">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Quick Actions</h5>
+                    <h5>Quick Actions</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-0">
                     <div class="list-group">
                         <a href="{{ url_for('assignments.create') }}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-plus-circle"></i> Create New Assignment
+                            <i class="fas fa-plus-circle"></i>Create New Assignment
                         </a>
                         <a href="{{ url_for('teacher.mark_attendance') }}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-clipboard-check"></i> Mark Attendance
+                            <i class="fas fa-clipboard-check"></i>Mark Attendance
                         </a>
                         <a href="{{ url_for('teacher.create_classroom') }}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-door-open"></i> Add Classroom
+                            <i class="fas fa-door-open"></i>Add Classroom
                         </a>
                         <a href="{{ url_for('timetable.manage') }}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-calendar-plus"></i> Design Timetable
+                            <i class="fas fa-calendar-plus"></i>Design Timetable
                         </a>
-                        <a href="{{ url_for('materials.create') }}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-book"></i> Upload Study Material
+                        <a href="{{ url_for('materials.sell_material') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-book"></i>Upload Study Material
                         </a>
                     </div>
                 </div>
@@ -223,7 +223,7 @@
                                         <span class="badge bg-{{ 'success' if material.status == 'available' else 'warning' }}">
                                             {{ material.status.title() }}
                                         </span>
-                                        <a href="{{ url_for('materials.view', id=material.id) }}" class="btn btn-sm btn-outline-primary ms-2">
+                                        <a href="{{ url_for('materials.view_material', id=material.id) }}" class="btn btn-sm btn-outline-primary ms-2">
                                             View
                                         </a>
                                     </div>

@@ -1,101 +1,311 @@
 {% extends "base.html" %}
 
-{% block title %}Study Materials{% endblock %}
+{% block title %}Study Materials - UniClass{% endblock %}
+
+{% block head %}
+<style>
+.materials-header {
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    padding: 3rem 0;
+    color: white;
+    border-radius: 0 0 20px 20px;
+    margin-bottom: 2rem;
+}
+
+.materials-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.materials-subtitle {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.hover-shadow {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+.hover-shadow:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+.object-fit-cover {
+    object-fit: cover;
+}
+.card {
+    border: none;
+    border-radius: 10px;
+}
+.input-group {
+    border-radius: 8px;
+}
+.input-group-text {
+    border: none;
+}
+.form-select, .form-control {
+    border: none;
+}
+.form-select:focus, .form-control:focus {
+    box-shadow: none;
+}
+.badge {
+    font-size: 0.8rem;
+    padding: 0.5em 0.8em;
+    border-radius: 6px;
+}
+.material-item {
+    display: none;
+}
+.material-item:nth-child(-n+9) {
+    display: block;
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="row mb-4">
+<div class="container-fluid py-4">
+    <!-- Header Section -->
+    <div class="row mb-4 align-items-center">
         <div class="col-md-8">
-            <h1>Study Materials</h1>
+            <h1 class="display-5 fw-bold text-primary">Study Materials</h1>
+            <p class="text-muted lead">Find and share study materials for your courses</p>
         </div>
-        <div class="col-md-4 text-end">
-            <a href="{{ url_for('materials.list_material') }}" class="btn btn-primary">
-                <i class="fas fa-plus me-2"></i>List Material
+        <div class="col-md-4 text-md-end">
+            <a href="{{ url_for('messages.inbox', message_type='material') }}" class="btn btn-outline-primary btn-lg shadow-sm me-2">
+                <i class="fas fa-envelope me-2"></i>Show Messages
+                {% if unread_count > 0 %}
+                <span class="badge bg-danger ms-2">{{ unread_count }}</span>
+                {% endif %}
+            </a>
+            <a href="{{ url_for('materials.sell_material') }}" class="btn btn-primary btn-lg shadow-sm">
+                <i class="fas fa-plus me-2"></i>List New Material
             </a>
         </div>
     </div>
 
-    <!-- Search Form -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form method="GET" class="row g-3">
-                {{ form.csrf_token }}
-                <div class="col-md-4">
-                    {{ form.search_query.label(class="form-label") }}
-                    {{ form.search_query(class="form-control", placeholder="Search by title, subject...") }}
+    <!-- Search Section -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body p-4">
+            <form method="GET" action="{{ url_for('materials.index') }}" class="row g-3" id="searchForm">
+                <!-- Search Bar -->
+                <div class="col-12 col-md-6 col-lg-3">
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text bg-light border-end-0">
+                            <i class="fas fa-search text-muted"></i>
+                        </span>
+                        {{ form.search_query(class="form-control border-start-0", placeholder="Search materials...", oninput="this.form.submit()") }}
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    {{ form.material_type.label(class="form-label") }}
-                    {{ form.material_type(class="form-select") }}
+                
+                <!-- Filters -->
+                <div class="col-6 col-md-3 col-lg-2">
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text bg-light border-end-0">
+                            <i class="fas fa-book text-muted"></i>
+                        </span>
+                        {{ form.material_type(class="form-select border-start-0", onchange="this.form.submit()") }}
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    {{ form.branch.label(class="form-label") }}
-                    {{ form.branch(class="form-select") }}
+                <div class="col-6 col-md-3 col-lg-2">
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text bg-light border-end-0">
+                            <i class="fas fa-graduation-cap text-muted"></i>
+                        </span>
+                        {{ form.branch(class="form-select border-start-0", onchange="this.form.submit()") }}
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    {{ form.semester.label(class="form-label") }}
-                    {{ form.semester(class="form-select") }}
+                <div class="col-6 col-md-3 col-lg-2">
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text bg-light border-end-0">
+                            <i class="fas fa-layer-group text-muted"></i>
+                        </span>
+                        {{ form.semester(class="form-select border-start-0", onchange="this.form.submit()") }}
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    {{ form.condition.label(class="form-label") }}
-                    {{ form.condition(class="form-select") }}
+                <div class="col-6 col-md-3 col-lg-2">
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text bg-light border-end-0">
+                            <i class="fas fa-star text-muted"></i>
+                        </span>
+                        {{ form.condition(class="form-select border-start-0", onchange="this.form.submit()") }}
+                    </div>
                 </div>
-                <div class="col-md-2">
-                    {{ form.min_price.label(class="form-label") }}
-                    {{ form.min_price(class="form-control", placeholder="Min") }}
-                </div>
-                <div class="col-md-2">
-                    {{ form.max_price.label(class="form-label") }}
-                    {{ form.max_price(class="form-control", placeholder="Max") }}
-                </div>
-                <div class="col-12">
-                    <button type="submit" class="btn btn-primary">Search</button>
-                    <a href="{{ url_for('materials.index') }}" class="btn btn-secondary">Reset</a>
+                <div class="col-12 col-md-6 col-lg-1">
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text bg-light border-end-0">
+                            <i class="fas fa-sort text-muted"></i>
+                        </span>
+                        {{ form.sort_by(class="form-select border-start-0", onchange="this.form.submit()") }}
+                    </div>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Materials Grid -->
-    <div class="row row-cols-1 row-cols-md-3 g-4">
-        {% for material in materials %}
-        <div class="col">
-            <div class="card h-100">
-                {% if material.image_path %}
-                <img src="{{ url_for('static', filename=material.image_path) }}" class="card-img-top" alt="{{ material.title }}">
-                {% else %}
-                <div class="card-img-top bg-light text-center py-5">
-                    <i class="fas fa-book fa-3x text-muted"></i>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4" id="materialsGrid">
+        {% for material in materials.items[:9] %}
+        <div class="col material-item">
+            <div class="card h-100 shadow-sm hover-shadow">
+                <!-- Material Image -->
+                <div class="position-relative" style="height: 200px; overflow: hidden;">
+                    {% if material.image_path %}
+                    <img src="{{ url_for('static', filename=material.image_path) }}" 
+                         class="card-img-top h-100 object-fit-cover" 
+                         alt="{{ material.title }}">
+                    {% else %}
+                    <div class="card-img-top bg-light h-100 d-flex align-items-center justify-content-center">
+                        <i class="fas fa-book fa-4x text-muted"></i>
+                    </div>
+                    {% endif %}
+                    <div class="position-absolute top-0 end-0 m-2">
+                        <span class="badge bg-{{ 'success' if material.condition == 'new' else 'primary' if material.condition == 'like_new' else 'info' if material.condition == 'good' else 'secondary' }}">
+                            {{ material.condition|title }}
+                        </span>
+                    </div>
                 </div>
-                {% endif %}
+
+                <!-- Material Details -->
                 <div class="card-body">
-                    <h5 class="card-title">{{ material.title }}</h5>
-                    <p class="card-text text-muted">
-                        <small>
-                            <i class="fas fa-graduation-cap me-1"></i>{{ material.branch }}<br>
-                            <i class="fas fa-layer-group me-1"></i>Semester {{ material.semester }}<br>
-                            <i class="fas fa-book me-1"></i>{{ material.material_type|title }}<br>
-                            <i class="fas fa-star me-1"></i>{{ material.condition|title }}
+                    <h5 class="card-title text-truncate">{{ material.title }}</h5>
+                    <div class="d-flex flex-column gap-2 mb-3">
+                        <small class="text-muted">
+                            <i class="fas fa-graduation-cap me-1"></i>{{ material.branch }}
                         </small>
-                    </p>
-                    <h6 class="card-subtitle mb-2 text-primary">₹{{ "%.2f"|format(material.price) }}</h6>
-                    <p class="card-text">{{ material.description|truncate(100) }}</p>
+                        <small class="text-muted">
+                            <i class="fas fa-layer-group me-1"></i>Semester {{ material.semester }}
+                        </small>
+                        <small class="text-muted">
+                            <i class="fas fa-book me-1"></i>{{ material.material_type|title }}
+                        </small>
+                    </div>
+                    <h6 class="card-subtitle mb-2 text-primary fw-bold">
+                        {% if material.material_type == 'question_papers' %}
+                            ₹0 - ₹10
+                        {% else %}
+                            ₹{{ "%.2f"|format(material.price) }}
+                        {% endif %}
+                    </h6>
+                    <p class="card-text text-muted small">{{ material.description|truncate(100) }}</p>
                 </div>
-                <div class="card-footer bg-transparent">
+
+                <!-- Card Footer -->
+                <div class="card-footer bg-transparent border-top-0">
                     <div class="d-flex justify-content-between align-items-center">
-                        <small class="text-muted">Listed {{ material.created_at.strftime('%Y-%m-%d') }}</small>
-                        <a href="{{ url_for('materials.view', id=material.id) }}" class="btn btn-sm btn-outline-primary">View Details</a>
+                        <small class="text-muted">
+                            <i class="far fa-clock me-1"></i>
+                            {{ material.created_at.strftime('%b %d, %Y') }}
+                        </small>
+                        <a href="{{ url_for('materials.view_material', id=material.id) }}" 
+                           class="btn btn-sm btn-outline-primary">
+                            View Details
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
-        {% else %}
-        <div class="col-12">
-            <div class="alert alert-info">
-                No materials found matching your criteria.
-            </div>
-        </div>
         {% endfor %}
     </div>
+
+    <!-- Show More Button -->
+    {% if materials.items|length > 9 %}
+    <div class="text-center mt-4">
+        <button id="showMoreBtn" class="btn btn-primary btn-lg shadow-sm">
+            <i class="fas fa-plus me-2"></i>Show More Materials
+        </button>
+    </div>
+    {% endif %}
+
+    <!-- Statistics Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <h3 class="text-center mb-4">Materials Statistics</h3>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-primary text-white shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Total Materials</h6>
+                            <h2 class="mb-0">{{ materials.total }}</h2>
+                        </div>
+                        <i class="fas fa-book fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Total Books</h6>
+                            <h2 class="mb-0">{{ materials.items|selectattr('material_type', 'equalto', 'book')|list|length }}</h2>
+                        </div>
+                        <i class="fas fa-book-open fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Question Papers</h6>
+                            <h2 class="mb-0">{{ materials.items|selectattr('material_type', 'equalto', 'question_papers')|list|length }}</h2>
+                        </div>
+                        <i class="fas fa-file-alt fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Subject Materials</h6>
+                            <h2 class="mb-0">{{ materials.items|selectattr('material_type', 'equalto', 'subject_material')|list|length }}</h2>
+                        </div>
+                        <i class="fas fa-file-pdf fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set initial values from URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    document.querySelector('select[name="material_type"]').value = urlParams.get('material_type') || '';
+    document.querySelector('select[name="branch"]').value = urlParams.get('branch') || '';
+    document.querySelector('select[name="semester"]').value = urlParams.get('semester') || '';
+    document.querySelector('select[name="condition"]').value = urlParams.get('condition') || '';
+    document.querySelector('select[name="sort_by"]').value = urlParams.get('sort_by') || '';
+
+    // Show More functionality
+    const showMoreBtn = document.getElementById('showMoreBtn');
+    if (showMoreBtn) {
+        let visibleItems = 9;
+        const allItems = document.querySelectorAll('.material-item');
+        
+        showMoreBtn.addEventListener('click', function() {
+            visibleItems += 6;
+            for (let i = 0; i < visibleItems && i < allItems.length; i++) {
+                allItems[i].style.display = 'block';
+            }
+            
+            if (visibleItems >= allItems.length) {
+                showMoreBtn.style.display = 'none';
+            }
+        });
+    }
+});
+</script>
 {% endblock %} 

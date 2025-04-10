@@ -7,26 +7,30 @@
     <div class="row">
         <!-- Sidebar -->
         <div class="col-md-3">
-            <div class="card sidebar-card">
-                <div class="card-body">
-                    <h5 class="card-title">Quick Actions</h5>
+            <div class="card quick-actions">
+                <div class="card-header">
+                    <h5>Quick Actions</h5>
+                </div>
+                <div class="card-body p-0">
                     <div class="list-group">
-                        <button class="list-group-item list-group-item-action active" data-bs-toggle="list" data-target="assignments">
-                            <i class="fas fa-tasks me-2"></i>Assignments
-                        </button>
-                        <button class="list-group-item list-group-item-action" data-bs-toggle="list" data-target="timetable">
-                            <i class="fas fa-calendar-alt me-2"></i>Timetable
-                        </button>
-                        <button class="list-group-item list-group-item-action" data-bs-toggle="list" data-target="materials">
-                            <i class="fas fa-book me-2"></i>Study Materials
-                        </button>
-                        <button class="list-group-item list-group-item-action" data-bs-toggle="list" data-target="classrooms">
-                            <i class="fas fa-chalkboard me-2"></i>Classrooms
-                        </button>
-                        <button class="list-group-item list-group-item-action" data-bs-toggle="list" data-target="profile">
-                            <i class="fas fa-user me-2"></i>Profile
-                        </button>
-                        <button class="list-group-item list-group-item-action" data-bs-toggle="list" data-target="lost_found">
+                        <a href="#" class="list-group-item list-group-item-action active" data-target="assignments">
+                            <i class="fas fa-tasks"></i>Assignments
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" data-target="timetable">
+                            <i class="fas fa-calendar-alt"></i>Timetable
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" data-target="materials">
+                            <i class="fas fa-book"></i>Study Materials
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" data-target="classrooms">
+                            <i class="fas fa-chalkboard"></i>Classrooms
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" data-target="profile">
+                            <i class="fas fa-user"></i>Profile
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" data-target="lost_found">
+                            <i class="fas fa-search"></i>Lost & Found
+                        </a>
                     </div>
                 </div>
             </div>
@@ -87,7 +91,6 @@
                                             <th>Wednesday</th>
                                             <th>Thursday</th>
                                             <th>Friday</th>
-                                            <th>Saturday</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -118,7 +121,7 @@
                                         <div class="card-body">
                                             <h6 class="card-title">{{ material.title }}</h6>
                                             <p class="card-text">{{ material.description }}</p>
-                                            <a href="{{ url_for('materials.show', id=material.id) }}" class="btn btn-sm btn-primary">View</a>
+                                            <a href="{{ url_for('materials.view_material', id=material.id) }}" class="btn btn-sm btn-primary">View</a>
                                         </div>
                                     </div>
                                 </div>
@@ -169,6 +172,17 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Lost & Found Section -->
+                <div class="tab-pane fade" id="lost_found">
+                    <div class="card content-card">
+                        <div class="card-body">
+                            <h5 class="card-title">Lost & Found</h5>
+                            <p>View and manage lost and found items.</p>
+                            <a href="{{ url_for('lost_found.index') }}" class="btn btn-primary">View All Items</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -200,7 +214,10 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             // Show target tab pane
-            document.getElementById(target).classList.add('show', 'active');
+            const targetPane = document.getElementById(target);
+            if (targetPane) {
+                targetPane.classList.add('show', 'active');
+            }
         });
     });
 });

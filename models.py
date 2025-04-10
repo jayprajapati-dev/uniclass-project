@@ -31,6 +31,7 @@ class UserRole(db.Model):
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
+    name = db.Column(db.String(100), nullable=True)  # Made nullable initially
     email = db.Column(db.String(120), unique=True, nullable=False)
     mobile = db.Column(db.String(10), unique=True, nullable=True)
     password_hash = db.Column(db.String(128))
@@ -59,10 +60,6 @@ class User(UserMixin, db.Model):
     # Feedback relationships
     given_feedback = db.relationship('Feedback', backref='reviewer', foreign_keys='Feedback.reviewer_id', lazy='dynamic')
     received_feedback = db.relationship('Feedback', backref='reviewee', foreign_keys='Feedback.reviewee_id', lazy='dynamic')
-    
-    # Message relationships
-    sent_messages = db.relationship('Message', backref='sender', foreign_keys='Message.sender_id', lazy='dynamic')
-    received_messages = db.relationship('Message', backref='receiver', foreign_keys='Message.receiver_id', lazy='dynamic')
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -110,6 +107,10 @@ class Message(db.Model):
     item_id = db.Column(db.Integer)  # ID of the related item (lost/found)
     item_type = db.Column(db.String(10))  # Type of item (lost/found)
     replies = db.relationship('Message', backref=db.backref('parent', remote_side=[id]), lazy='dynamic')
+    
+    # Define relationships here instead
+    sender = db.relationship('User', foreign_keys=[sender_id], backref=db.backref('sent_messages', lazy='dynamic'))
+    receiver = db.relationship('User', foreign_keys=[receiver_id], backref=db.backref('received_messages', lazy='dynamic'))
 
 # Feedback Model
 class Feedback(db.Model):
@@ -363,7 +364,7 @@ class MaterialPurchase(db.Model):
 # Smart Classroom Finder Models
 class Classroom(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable=False)
+    room_number = db.Column(db.String(50), nullable=False)
     location = db.Column(db.String(100), nullable=False)
     floor = db.Column(db.String(20), nullable=False)  # Floor number
     building = db.Column(db.String(50), nullable=False)  # Building name
@@ -374,7 +375,7 @@ class Classroom(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     def __repr__(self):
-        return f'<Classroom {self.name} - {self.building} Floor {self.floor}>'
+        return f'<Classroom {self.room_number}>'
 
 class RoomReport(db.Model):
     id = db.Column(db.Integer, primary_key=True)

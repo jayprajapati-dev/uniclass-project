@@ -47,36 +47,22 @@
                             <th>Wednesday</th>
                             <th>Thursday</th>
                             <th>Friday</th>
-                            <th>Saturday</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for time_slot in timetable_entries %}
                         <tr>
                             <td>{{ time_slot.start_time.strftime('%I:%M %p') }} - {{ time_slot.end_time.strftime('%I:%M %p') }}</td>
-                            {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] %}
+                            {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] %}
                             <td>
-                                {% for entry in time_slot[day] %}
-                                <div class="card mb-2">
-                                    <div class="card-body p-2">
-                                        <h6 class="card-title mb-1">{{ entry.subject }}</h6>
-                                        <p class="card-text small mb-1">
-                                            <i class="fas fa-user me-1"></i>{{ entry.faculty }}<br>
-                                            <i class="fas fa-users me-1"></i>{{ entry.batch }}<br>
-                                            <i class="fas fa-door-open me-1"></i>{{ entry.classroom.name }}
-                                        </p>
-                                        <div class="d-flex gap-2">
-                                            <a href="{{ url_for('classroom.show', id=entry.classroom.id) }}" class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-search me-1"></i>Find Room
-                                            </a>
-                                            {% if current_user.is_teacher and entry.faculty == current_user.name %}
-                                            <a href="{{ url_for('attendance.mark_attendance', subject_id=entry.id) }}" class="btn btn-sm btn-outline-success">
-                                                <i class="fas fa-check-circle me-1"></i>Mark Attendance
-                                            </a>
-                                            {% endif %}
-                                        </div>
-                                    </div>
+                                {% for entry in entries %}
+                                {% if entry.day_of_week == day and entry.start_time == time_slot.start_time %}
+                                <div class="timetable-entry">
+                                    <div class="subject-name">{{ entry.subject }}</div>
+                                    <div class="teacher-name">{{ entry.teacher.name }}</div>
+                                    <div class="room-label">{{ entry.classroom.name }}</div>
                                 </div>
+                                {% endif %}
                                 {% endfor %}
                             </td>
                             {% endfor %}
